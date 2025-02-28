@@ -234,11 +234,11 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   
   // Status color mapping
   const statusColor = {
-    "In Progress": "default",
-    Completed: "success",
-    "On Hold": "warning",
-    Planned: "secondary",
-  } as const;
+    "In Progress": "text-blue-500 bg-blue-100 dark:bg-blue-900/30",
+    Completed: "text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30",
+    "On Hold": "text-amber-500 bg-amber-100 dark:bg-amber-900/30",
+    Planned: "text-slate-500 bg-slate-100 dark:bg-slate-900/30",
+  };
   
   // Status icon mapping
   const getStatusIcon = () => {
@@ -268,6 +268,14 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     Pending: "text-slate-500 bg-slate-100 dark:bg-slate-900/30",
   };
 
+  // Definir as variantes de badge para status
+  const statusVariant = {
+    "In Progress": "default",
+    Completed: "outline",
+    "On Hold": "secondary",
+    Planned: "secondary",
+  } as const;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -282,7 +290,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
               <h1 className="text-2xl font-bold">{project.title}</h1>
               <p className="text-muted-foreground">Project #{project.id}</p>
             </div>
-            <Badge variant={statusColor[project.status]} className="ml-2">
+            <Badge className={`ml-2 ${statusColor[project.status]}`}>
               {project.status}
             </Badge>
           </div>
@@ -295,6 +303,18 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
             <Button variant="outline" size="sm">
               <FileText className="mr-2 h-4 w-4" />
               Generate Report
+            </Button>
+            <Button size="sm" asChild>
+              <Link href={`/projects/${params.id}/edit`}>
+                <FileText className="mr-2 h-4 w-4" />
+                Editar Projeto
+              </Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href={`/projects/${params.id}/team`}>
+                <Users className="mr-2 h-4 w-4" />
+                Gerenciar Equipe
+              </Link>
             </Button>
             <Button size="sm">
               <ListTodo className="mr-2 h-4 w-4" />

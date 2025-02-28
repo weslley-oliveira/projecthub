@@ -3,22 +3,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Clock, Users } from "lucide-react";
+import { TeamMember, Project } from "@/app/types/project";
 
-interface TeamMember {
-  id: string;
-  name: string;
-  avatar?: string;
-}
-
-interface ProjectCardProps {
-  title: string;
-  description: string;
-  progress: number;
-  dueDate: string;
-  status: "In Progress" | "Completed" | "On Hold" | "Planned";
-  team: TeamMember[];
-  startTime?: string; // Add optional start time
-}
+// Estendendo o tipo Project para o componente ProjectCard
+type ProjectCardProps = Omit<Project, 'id' | 'address' | 'contact' | 'workforce'>;
 
 export function ProjectCard({
   title,
@@ -27,20 +15,23 @@ export function ProjectCard({
   dueDate,
   status,
   team,
-  startTime = "9:00 AM", // Default start time if not provided
+  startTime = "08:00", // Default start time if not provided
+  finishedTime,
 }: ProjectCardProps) {
   const statusColor = {
+    "Pending": "bg-slate-500",
+    "Confirmed": "bg-purple-500",
     "In Progress": "bg-blue-500",
-    Completed: "bg-emerald-500",
-    "On Hold": "bg-amber-500",
-    Planned: "bg-slate-500",
+    "Completed": "bg-emerald-500",
+    "Canceled": "bg-red-500",
   };
 
   const statusVariant = {
+    "Pending": "secondary",
+    "Confirmed": "default",
     "In Progress": "default",
-    Completed: "success",
-    "On Hold": "warning",
-    Planned: "secondary",
+    "Completed": "outline",
+    "Canceled": "destructive",
   } as const;
 
   return (
@@ -58,8 +49,17 @@ export function ProjectCard({
         <div className="flex items-center bg-primary/10 rounded-md p-2 mb-3">
           <Clock className="h-4 w-4 text-primary mr-2" />
           <div>
-            <span className="text-xs text-muted-foreground">Start Time</span>
-            <p className="text-sm font-semibold">{startTime}</p>
+            {status === "Completed" && finishedTime ? (
+              <>
+                <span className="text-xs text-muted-foreground">Time</span>
+                <p className="text-sm font-semibold">{startTime} - {finishedTime}</p>
+              </>
+            ) : (
+              <>
+                <span className="text-xs text-muted-foreground">Start</span>
+                <p className="text-sm font-semibold">{startTime}</p>
+              </>
+            )}
           </div>
         </div>
         

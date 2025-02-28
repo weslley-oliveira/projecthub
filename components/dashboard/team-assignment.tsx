@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   Dialog, 
   DialogContent, 
@@ -22,21 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  avatar?: string;
-  department: string;
-  status: "Active" | "On Leave" | "Unavailable";
-}
-
-interface Project {
-  id: string;
-  title: string;
-  team: TeamMember[];
-}
+import { TeamMember, Project } from "@/app/types/project";
 
 interface TeamAssignmentProps {
   isOpen: boolean;

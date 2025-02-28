@@ -18,6 +18,7 @@ O ProjectHub é uma aplicação web moderna e abrangente para gerenciar projetos
 - Atribuição de membros da equipe
 - Definição de marcos e tarefas
 - Histórico de atividades do projeto
+- Cadastro de endereço para localização do projeto
 
 ### Gerenciamento de Equipes
 - Registro de membros da equipe
@@ -41,6 +42,11 @@ O ProjectHub é uma aplicação web moderna e abrangente para gerenciar projetos
 - Análise de produtividade da equipe
 - Distribuição do status do projeto
 - Tendências de tempo e recursos
+
+### Localização
+- Cadastro de endereço completo para projetos
+- Suporte para endereços brasileiros com estados pré-configurados
+- Armazenamento de informações como rua, número, complemento, bairro, cidade, estado, CEP e país
 
 ## Tecnologias Utilizadas
 - **Framework:** Next.js
@@ -87,6 +93,7 @@ O ProjectHub é uma aplicação web moderna e abrangente para gerenciar projetos
 │   ├── dashboard/        # Componentes específicos do dashboard
 │   ├── invoice/         # Componentes relacionados a faturas
 │   └── ui/              # Componentes de UI base
+│       └── address.tsx  # Componente de cadastro de endereço
 ├── hooks/               # Hooks personalizados
 ├── lib/                 # Utilitários e funções auxiliares
 └── public/              # Arquivos estáticos
@@ -102,3 +109,8 @@ Para iniciar a versão de produção:
 ```bash
 npm start
 ```
+
+## Atualizações Recentes
+- Adicionado componente de cadastro de endereço para projetos
+- Implementada interface para gerenciamento de localização dos projetos
+- Suporte completo para endereços brasileiros com estados pré-configurados
