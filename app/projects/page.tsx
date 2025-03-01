@@ -18,18 +18,16 @@ import {
   DialogDescription, 
   DialogFooter, 
   DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Users, MapPin, Phone, Briefcase, Minus, Clock, FileText } from "lucide-react";
+import { Search, Users, MapPin, Phone, Clock, FileText, Plus, Eye } from "lucide-react";
 import { TeamAssignment } from "@/components/dashboard/team-assignment";
 import { useToast } from "@/hooks/use-toast";
 import { Address } from "@/components/ui/address";
 import Link from "next/link";
-import { TeamMember, Contact, WorkforceType, Project, AddressData } from "../types/project";
-import { mockProjects, allTeamMembers, calculateDuration, calculateFinishedTime } from "@/app/data/projects/mockProjects";
+import { TeamMember, Contact, Project, AddressData } from "../types/project";
+import { calculateDuration, calculateFinishedTime } from "@/app/data/projects/mockProjects";
 
 export default function ProjectsPage() {
   const { toast } = useToast();
@@ -44,9 +42,30 @@ export default function ProjectsPage() {
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const [projectToComplete, setProjectToComplete] = useState<Project | null>(null);
   const [finishTime, setFinishTime] = useState<string>("");
-  
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
-  
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carregar projetos da API
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const response = await fetch('/api/projects');
+      const data = await response.json();
+      setProjects(data.projects);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load projects",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filter projects based on search query and status filter
   const filteredProjects = projects.filter((project) => {
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -78,75 +97,130 @@ export default function ProjectsPage() {
   };
 
   // Function to save contact to project
-  const saveProjectContact = () => {
+  const saveProjectContact = async () => {
     const name = (document.getElementById('contact-name') as HTMLInputElement)?.value;
     const phone = (document.getElementById('contact-phone') as HTMLInputElement)?.value;
     
     if (selectedProject && name && phone) {
       const contact = { name, phone };
-      setProjectContact(contact);
       
-      setProjects(prevProjects => 
-        prevProjects.map(project => {
-          if (project.id === selectedProject.id) {
-            return { ...project, contact };
-          }
-          return project;
-        })
-      );
-      
-      toast({
-        title: "Contact updated",
-        description: "Project contact has been successfully updated.",
-      });
-      
-      setContactDialogOpen(false);
+      try {
+        const response = await fetch('/api/projects', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: selectedProject.id,
+            contact
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to update contact');
+
+        const data = await response.json();
+        setProjects(prevProjects => 
+          prevProjects.map(project => 
+            project.id === selectedProject.id ? data.project : project
+          )
+        );
+        
+        toast({
+          title: "Success",
+          description: "Contact updated successfully",
+        });
+        
+        setContactDialogOpen(false);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update contact",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Error",
-        description: "Please fill in all fields.",
+        description: "Please fill in all fields",
         variant: "destructive",
       });
     }
   };
 
   // Function to save address to project
-  const saveProjectAddress = () => {
+  const saveProjectAddress = async () => {
     if (selectedProject && projectAddress) {
-      setProjects(prevProjects => 
-        prevProjects.map(project => {
-          if (project.id === selectedProject.id) {
-            return { ...project, address: projectAddress };
-          }
-          return project;
-        })
-      );
-      
-      toast({
-        title: "Address updated",
-        description: "Project address has been successfully updated.",
-      });
-      
-      setAddressDialogOpen(false);
+      try {
+        const response = await fetch('/api/projects', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: selectedProject.id,
+            address: projectAddress
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to update address');
+
+        const data = await response.json();
+        setProjects(prevProjects => 
+          prevProjects.map(project => 
+            project.id === selectedProject.id ? data.project : project
+          )
+        );
+        
+        toast({
+          title: "Success",
+          description: "Address updated successfully",
+        });
+        
+        setAddressDialogOpen(false);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update address",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   // Function to assign team members to a project
-  const assignTeamMembers = (projectId: string, memberIds: string[]) => {
-    setProjects(prevProjects => 
-      prevProjects.map(project => {
-        if (project.id === projectId) {
-          const newTeam = allTeamMembers.filter(member => memberIds.includes(member.id));
-          return { ...project, team: newTeam };
-        }
-        return project;
-      })
-    );
-    
-    toast({
-      title: "Team updated",
-      description: "Team members have been successfully assigned to the project.",
-    });
+  const assignTeamMembers = async (projectId: string, memberIds: string[]) => {
+    try {
+      const response = await fetch('/api/projects', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: projectId,
+          team: memberIds.map(id => ({ id }))
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update team');
+
+      const data = await response.json();
+      setProjects(prevProjects => 
+        prevProjects.map(project => 
+          project.id === projectId ? data.project : project
+        )
+      );
+      
+      toast({
+        title: "Success",
+        description: "Team members assigned successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to assign team members",
+        variant: "destructive",
+      });
+    }
   };
 
   // Function to format time
@@ -174,21 +248,6 @@ export default function ProjectsPage() {
     return time;
   };
 
-  // Function to ensure all completed projects have an end time
-  useEffect(() => {
-    setProjects(prevProjects => 
-      prevProjects.map(project => {
-        if (project.status === "Completed" && !project.finishedTime && project.startTime) {
-          return {
-            ...project,
-            finishedTime: calculateFinishedTime(project.startTime)
-          };
-        }
-        return project;
-      })
-    );
-  }, []);
-
   // Function to open completion dialog
   const openCompletionDialog = (project: Project) => {
     setProjectToComplete(project);
@@ -199,31 +258,57 @@ export default function ProjectsPage() {
   };
 
   // Function to confirm project completion
-  const confirmProjectCompletion = () => {
+  const confirmProjectCompletion = async () => {
     if (projectToComplete) {
-      setProjects(prevProjects => 
-        prevProjects.map(project => {
-          if (project.id === projectToComplete.id) {
-            return {
-              ...project,
-              status: "Completed" as const,
-              progress: 100,
-              finishedTime: finishTime
-            };
-          }
-          return project;
-        })
-      );
-      
-      toast({
-        title: "Project completed",
-        description: "Project has been marked as completed successfully.",
-      });
-      
-      setCompletionDialogOpen(false);
-      setProjectToComplete(null);
+      try {
+        const response = await fetch('/api/projects', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: projectToComplete.id,
+            status: "Completed",
+            progress: 100,
+            finishedTime: finishTime
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to complete project');
+
+        const data = await response.json();
+        setProjects(prevProjects => 
+          prevProjects.map(project => 
+            project.id === projectToComplete.id ? data.project : project
+          )
+        );
+        
+        toast({
+          title: "Success",
+          description: "Project marked as completed successfully",
+        });
+        
+        setCompletionDialogOpen(false);
+        setProjectToComplete(null);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to complete project",
+          variant: "destructive",
+        });
+      }
     }
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-full">
+          <p>Loading projects...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -288,6 +373,16 @@ export default function ProjectsPage() {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  asChild
+                >
+                  <Link href={`/projects/${project.id}`}>
+                    <Eye className="h-4 w-4 mr-1" />
+                    View
+                  </Link>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
                   onClick={() => openAddressDialog(project)}
                 >
                   <MapPin className="h-4 w-4 mr-1" />
@@ -339,7 +434,7 @@ export default function ProjectsPage() {
           isOpen={teamAssignmentOpen}
           onClose={() => setTeamAssignmentOpen(false)}
           project={selectedProject}
-          availableMembers={allTeamMembers}
+          availableMembers={[]} // Será atualizado quando criarmos a API de membros
           onAssignMembers={assignTeamMembers}
         />
       )}

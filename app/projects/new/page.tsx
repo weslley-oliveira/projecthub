@@ -28,7 +28,7 @@ import { ArrowLeft, Briefcase, MapPin, Phone, Plus, Minus } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Address } from "@/components/ui/address";
-import { Contact, WorkforceType, AddressData } from "@/app/types/project";
+import { Contact, WorkforceType, AddressData, Project } from "@/app/types/project";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -46,7 +46,8 @@ export default function NewProjectPage() {
     { type: "Driver", quantity: 0 },
     { type: "Supervisor", quantity: 0 }
   ]);
-  
+  const [loading, setLoading] = useState(false);
+
   // Função para abrir diálogo de endereço
   const openAddressDialog = () => {
     setAddressDialogOpen(true);
@@ -121,20 +122,63 @@ export default function NewProjectPage() {
   };
   
   // Função para criar novo projeto
-  const createProject = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    
-    // Aqui você implementaria a lógica para salvar o projeto
-    // Por enquanto, apenas mostraremos um toast e redirecionaremos
-    
-    toast({
-      title: "Projeto criado",
-      description: "O novo projeto foi criado com sucesso.",
-    });
-    
-    // Redirecionar para a lista de projetos
-    router.push("/projects");
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const dueDate = formData.get("dueDate") as string;
+    const startTime = formData.get("startTime") as string;
+    const contactName = formData.get("contactName") as string;
+    const contactPhone = formData.get("contactPhone") as string;
+
+    try {
+      // Criar objeto do projeto
+      const newProject = {
+        title,
+        description,
+        dueDate,
+        startTime,
+        contact: contactName && contactPhone ? {
+          name: contactName,
+          phone: contactPhone
+        } as Contact : undefined,
+        address: projectAddress
+      };
+
+      // Enviar para a API
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newProject),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create project');
+      }
+
+      const data = await response.json();
+
+      toast({
+        title: "Success",
+        description: "Project created successfully",
+      });
+
+      // Redirecionar para a página do projeto
+      router.push(`/projects/${data.project.id}`);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create project",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   return (
@@ -158,119 +202,85 @@ export default function NewProjectPage() {
               Fill in the details to create a new project.
             </CardDescription>
           </CardHeader>
-          <form onSubmit={createProject}>
+          <form onSubmit={handleSubmit} className="space-y-8">
             <CardContent className="space-y-6">
-              <div className="grid gap-4">
+              <div className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Project Name</Label>
-                  <Input id="name" name="name" placeholder="Enter project name" required />
+                  <Label htmlFor="title">Project Title</Label>
+                  <Input
+                    id="title"
+                    name="title"
+                    placeholder="Enter project title"
+                    required
+                  />
                 </div>
                 
                 <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
-                  <Textarea 
-                    id="description" 
-                    name="description" 
-                    placeholder="Enter project description" 
-                    required 
+                  <Textarea
+                    id="description"
+                    name="description"
+                    placeholder="Enter project description"
+                    required
                   />
                 </div>
                 
                 <div className="grid gap-2">
                   <Label htmlFor="dueDate">Due Date</Label>
-                  <Input id="dueDate" name="dueDate" type="date" required />
+                  <Input
+                    id="dueDate"
+                    name="dueDate"
+                    type="date"
+                    required
+                  />
                 </div>
                 
                 <div className="grid gap-2">
                   <Label htmlFor="startTime">Start Time</Label>
-                  <Input 
-                    id="startTime" 
-                    name="startTime" 
-                    type="time" 
-                    defaultValue="08:00" 
-                    required 
+                  <Input
+                    id="startTime"
+                    name="startTime"
+                    type="time"
+                    required
                   />
-                  <p className="text-xs text-muted-foreground">Work has a minimum duration of 8 hours</p>
                 </div>
               </div>
               
-              <div className="grid gap-4">
-                <div className="flex flex-wrap items-center gap-3 mb-2">
-                  <Button 
-                    type="button"
-                    variant="outline" 
-                    className="self-start flex items-center gap-2"
-                    onClick={openWorkforceDialog}
-                  >
-                    <Briefcase className="h-4 w-4" />
-                    {workforce.some(item => item.quantity > 0) 
-                      ? "Edit Workforce" 
-                      : "Add Workforce"}
-                  </Button>
-                  
-                  {workforce.some(item => item.quantity > 0) && (
-                    <div className="px-3 py-1 bg-muted rounded-md text-sm">
-                      {workforce.filter(item => item.quantity > 0).map((item, index, arr) => (
-                        <span key={item.type}>
-                          {item.type}: {item.quantity}
-                          {index < arr.length - 1 ? ', ' : ''}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="grid gap-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Project Address</Label>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={openAddressDialog}
-                    >
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {projectAddress ? "Edit Address" : "Add Address"}
-                    </Button>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Contact Information</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="contactName">Contact Name</Label>
+                    <Input
+                      id="contactName"
+                      name="contactName"
+                      placeholder="Enter contact name"
+                    />
                   </div>
-                  
-                  {projectAddress && (
-                    <div className="mt-2 p-3 border rounded-md bg-muted/50">
-                      <p className="text-sm font-medium">Registered Address:</p>
-                      <p className="text-sm">{projectAddress.street}, {projectAddress.number}</p>
-                      <p className="text-sm">{projectAddress.neighborhood} - {projectAddress.city}/{projectAddress.state}</p>
-                      <p className="text-sm">CEP: {projectAddress.zipCode}</p>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="grid gap-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Project Contact</Label>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={openContactDialog}
-                    >
-                      <Phone className="h-4 w-4 mr-1" />
-                      {projectContact ? "Edit Contact" : "Add Contact"}
-                    </Button>
+                  <div className="grid gap-2">
+                    <Label htmlFor="contactPhone">Contact Phone</Label>
+                    <Input
+                      id="contactPhone"
+                      name="contactPhone"
+                      placeholder="Enter contact phone"
+                    />
                   </div>
-                  
-                  {projectContact && (
-                    <div className="mt-2 p-3 border rounded-md bg-muted/50">
-                      <p className="text-sm font-medium">Registered Contact:</p>
-                      <p className="text-sm">Name: {projectContact.name}</p>
-                      <p className="text-sm">Phone: {projectContact.phone}</p>
-                    </div>
-                  )}
                 </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Project Address</h3>
+                <Address
+                  onAddressChange={setProjectAddress}
+                  className="border rounded-lg p-4"
+                />
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
               <Link href="/projects">Cancel</Link>
-              <Button type="submit">Create Project</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Creating..." : "Create Project"}
+              </Button>
             </CardFooter>
           </form>
         </Card>

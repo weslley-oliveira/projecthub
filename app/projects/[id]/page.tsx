@@ -307,7 +307,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
             <Button size="sm" asChild>
               <Link href={`/projects/${params.id}/edit`}>
                 <FileText className="mr-2 h-4 w-4" />
-                Editar Projeto
+                Edit Project
               </Link>
             </Button>
             <Button size="sm" asChild>
