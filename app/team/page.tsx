@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -8,8 +8,7 @@ import {
   CardContent, 
   CardHeader, 
   CardTitle,
-  CardDescription,
-  CardFooter
+  CardDescription
 } from "@/components/ui/card";
 import { 
   Table, 
@@ -57,111 +56,8 @@ import {
   Filter 
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-// Definir tipos
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  email: string;
-  phone: string;
-  department: string;
-  status: "Active" | "On Leave" | "Unavailable";
-  avatar?: string;
-  joinDate: string;
-}
-
-// Mock data para membros da equipe
-const teamMembers: TeamMember[] = [
-    {
-      id: "1",
-      name: "John Doe",
-      role: "Project Manager",
-      email: "john.doe@example.com",
-    phone: "+55 11 98765-4321",
-      department: "Management",
-      status: "Active",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60",
-    joinDate: "Jan 15, 2022",
-    },
-    {
-      id: "2",
-      name: "Sarah Johnson",
-      role: "UI/UX Designer",
-      email: "sarah.johnson@example.com",
-    phone: "+55 11 91234-5678",
-      department: "Design",
-      status: "Active",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60",
-    joinDate: "Mar 3, 2022",
-    },
-    {
-      id: "3",
-      name: "David Kim",
-      role: "Full Stack Developer",
-      email: "david.kim@example.com",
-    phone: "+55 11 99876-5432",
-      department: "Engineering",
-      status: "Active",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60",
-    joinDate: "Feb 12, 2022",
-    },
-    {
-      id: "4",
-      name: "Maria Garcia",
-      role: "Backend Developer",
-      email: "maria.garcia@example.com",
-    phone: "+55 11 98888-7777",
-      department: "Engineering",
-      status: "On Leave",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=60",
-    joinDate: "Apr 20, 2022",
-    },
-    {
-      id: "5",
-      name: "Ana Silva",
-      role: "Marketing Specialist",
-      email: "ana.silva@example.com",
-    phone: "+55 11 97777-8888",
-      department: "Marketing",
-      status: "Active",
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=60",
-    joinDate: "Jun 5, 2022",
-    },
-    {
-      id: "6",
-      name: "Michael Johnson",
-      role: "Frontend Developer",
-      email: "michael.johnson@example.com",
-    phone: "+55 11 96666-5555",
-      department: "Engineering",
-      status: "Active",
-    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&auto=format&fit=crop&q=60",
-    joinDate: "May 15, 2022",
-    },
-    {
-      id: "7",
-      name: "Emily Chen",
-      role: "QA Engineer",
-      email: "emily.chen@example.com",
-    phone: "+55 11 95555-4444",
-      department: "Engineering",
-      status: "Unavailable",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=60",
-    joinDate: "Jul 10, 2022",
-    },
-    {
-      id: "8",
-      name: "Robert Wilson",
-      role: "Product Manager",
-      email: "robert.wilson@example.com",
-    phone: "+55 11 94444-3333",
-      department: "Management",
-      status: "Active",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=60",
-    joinDate: "Aug 22, 2022",
-  },
-];
+import { TeamMember } from "../types/team";
+import Link from "next/link";
 
 export default function TeamPage() {
   const { toast } = useToast();
@@ -171,7 +67,34 @@ export default function TeamPage() {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isEditMemberOpen, setIsEditMemberOpen] = useState(false);
   const [currentMember, setCurrentMember] = useState<TeamMember | null>(null);
-  const [members, setMembers] = useState<TeamMember[]>(teamMembers);
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch team members from API
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const response = await fetch('/api/team');
+        if (!response.ok) {
+          throw new Error('Failed to fetch team members');
+        }
+        const data = await response.json();
+        setMembers(data);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'An error occurred');
+        toast({
+          title: "Error",
+          description: "Failed to load team members",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeamMembers();
+  }, [toast]);
   
   // Filtrar membros com base na pesquisa e filtros
   const filteredMembers = members.filter(member => {
@@ -247,10 +170,12 @@ export default function TeamPage() {
               Gerencie os membros da sua equipe e suas funções
             </p>
           </div>
-          <Button onClick={openAddMemberDialog}>
-                <Plus className="mr-2 h-4 w-4" />
-            Adicionar Membro
-              </Button>
+          <Button asChild>
+            <Link href="/team/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Adicionar Membro
+            </Link>
+          </Button>
         </div>
         
         <Card>
@@ -346,27 +271,27 @@ export default function TeamPage() {
                     filteredMembers.map((member) => (
                       <TableRow key={member.id}>
                         <TableCell>
-                    <div className="flex items-center gap-3">
-                            <Avatar>
+                    <Link href={`/team/${member.id}`} className="flex items-center gap-3 hover:bg-muted/50 rounded-md p-1 transition-colors">
+                      <Avatar>
                         <AvatarImage src={member.avatar} />
                         <AvatarFallback>
-                                {member.name.split(" ").map(n => n[0]).join("")}
+                          {member.name.split(" ").map(n => n[0]).join("")}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium">{member.name}</p>
-                              <p className="text-sm text-muted-foreground">{member.email}</p>
+                        <p className="text-sm text-muted-foreground">{member.email}</p>
                       </div>
-                    </div>
+                    </Link>
                         </TableCell>
                         <TableCell>{member.role}</TableCell>
                         <TableCell className="hidden md:table-cell">{member.department}</TableCell>
                         <TableCell className="hidden md:table-cell">
                           <Badge 
                             variant={
-                              member.status === "Active" 
+                              member.status === "Available" 
                                 ? "default" 
-                                : member.status === "On Leave" 
+                                : member.status === "Working" 
                                   ? "secondary" 
                                   : "outline"
                             }
