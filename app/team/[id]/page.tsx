@@ -8,18 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Edit } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/layout';
+import { TeamMember } from '@/app/types/team';
 
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  avatar?: string;
-  department: string;
-  email: string;
-  phone?: string;
-  status: "Available" | "Working" | "Busy" | "Absent";
-  joinDate?: string;
-}
+
 
 export default function TeamMemberPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -91,10 +82,16 @@ export default function TeamMemberPage({ params }: { params: { id: string } }) {
             </Avatar>
             <div>
               <CardTitle className="text-2xl">{member.name}</CardTitle>
-              <p className="text-muted-foreground">{member.email}</p>
             </div>
           </div>
-          <Button onClick={() => router.push(`/team/${params.id}/edit`)}>
+          <div className="flex gap-2">
+          </div>
+            <Button onClick={() => router.push(`/team/${params.id}/rate`)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Manage Rates
+            </Button>
+            <Button onClick={() => router.push(`/team/${params.id}/edit`)}>
+
             <Edit className="h-4 w-4 mr-2" />
             Edit Member
           </Button>
@@ -133,6 +130,25 @@ export default function TeamMemberPage({ params }: { params: { id: string } }) {
               <div className="space-y-2">
                 <h3 className="font-semibold">Join Date</h3>
                 <p>{member.joinDate}</p>
+              </div>
+            )}
+            {member.bankDetails && (
+              <div className="space-y-2">
+                <h3 className="font-semibold">Bank Details</h3>
+                <div className="space-y-1">
+                  <p><span className="text-muted-foreground">Account Name:</span> {member.bankDetails.accountName}</p>
+                  <p><span className="text-muted-foreground">Account Number:</span> {member.bankDetails.accountNumber}</p>
+                  <p><span className="text-muted-foreground">Sort Code:</span> {member.bankDetails.sortCode}</p>
+                </div>
+              </div>
+            )}
+            {member.cscsCard && (
+              <div className="space-y-2">
+                <h3 className="font-semibold">CSCS Card</h3>
+                <div className="space-y-1">
+                  <p><span className="text-muted-foreground">Card Number:</span> {member.cscsCard.number}</p>
+                  <p><span className="text-muted-foreground">Expiry Date:</span> {member.cscsCard.expiryDate}</p>
+                </div>
               </div>
             )}
           </div>

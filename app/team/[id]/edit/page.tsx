@@ -8,15 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/layout';
-
-interface TeamMember {
-  id: string;
-  name: string;
-  role: string;
-  avatar?: string;
-  department: string;
-  status: "Available" | "Working" | "Busy" | "Absent";
-}
+import { TeamMember } from '@/app/types/team';
 
 export default function TeamMemberPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -111,12 +103,24 @@ export default function TeamMemberPage({ params }: { params: { id: string } }) {
 
               <div className="grid gap-2">
                 <label htmlFor="department">Department</label>
-                <Input
-                  id="department"
+                <Select
                   value={member.department}
-                  onChange={(e) => setMember({ ...member, department: e.target.value })}
+                  onValueChange={(value: "Management" | "Engineering" | "Design" | "Marketing" | "Sales") =>
+                    setMember({ ...member, department: value })
+                  }
                   disabled={!isEditing}
-                />
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Management">Management</SelectItem>
+                    <SelectItem value="Engineering">Engineering</SelectItem>
+                    <SelectItem value="Design">Design</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Sales">Sales</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid gap-2">
@@ -138,6 +142,92 @@ export default function TeamMemberPage({ params }: { params: { id: string } }) {
                     <SelectItem value="Absent">Absent</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <h3 className="font-semibold">Bank Details</h3>
+                <div className="grid gap-2">
+                  <label htmlFor="accountName">Account Name</label>
+                  <Input
+                    id="accountName"
+                    value={member.bankDetails?.accountName || ''}
+                    onChange={(e) => setMember({
+                      ...member,
+                      bankDetails: {
+                        accountName: e.target.value,
+                        accountNumber: member.bankDetails?.accountNumber || '',
+                        sortCode: member.bankDetails?.sortCode || ''
+                      }
+                    })}
+                    disabled={!isEditing}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="accountNumber">Account Number</label>
+                  <Input
+                    id="accountNumber"
+                    value={member.bankDetails?.accountNumber || ''}
+                    onChange={(e) => setMember({
+                      ...member,
+                      bankDetails: {
+                        accountName: member.bankDetails?.accountName || '',
+                        accountNumber: e.target.value,
+                        sortCode: member.bankDetails?.sortCode || ''
+                      }
+                    })}
+                    disabled={!isEditing}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="sortCode">Sort Code</label>
+                  <Input
+                    id="sortCode"
+                    value={member.bankDetails?.sortCode || ''}
+                    onChange={(e) => setMember({
+                      ...member,
+                      bankDetails: {
+                        accountName: member.bankDetails?.accountName || '',
+                        accountNumber: member.bankDetails?.accountNumber || '',
+                        sortCode: e.target.value
+                      }
+                    })}
+                    disabled={!isEditing}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <h3 className="font-semibold">CSCS Card</h3>
+                <div className="grid gap-2">
+                  <label htmlFor="cscsNumber">Card Number</label>
+                  <Input
+                    id="cscsNumber"
+                    value={member.cscsCard?.number || ''}
+                    onChange={(e) => setMember({
+                      ...member,
+                      cscsCard: {
+                        number: e.target.value,
+                        expiryDate: member.cscsCard?.expiryDate || ''
+                      }
+                    })}
+                    disabled={!isEditing}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="cscsExpiryDate">Expiry Date</label>
+                  <Input
+                    id="cscsExpiryDate"
+                    value={member.cscsCard?.expiryDate || ''}
+                    onChange={(e) => setMember({
+                      ...member,
+                      cscsCard: {
+                        number: member.cscsCard?.number || '',
+                        expiryDate: e.target.value
+                      }
+                    })}
+                    disabled={!isEditing}
+                  />
+                </div>
               </div>
             </div>
 

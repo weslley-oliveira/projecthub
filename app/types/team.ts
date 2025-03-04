@@ -1,9 +1,11 @@
 // Team member status type
 export type TeamMemberStatus =  "Available" | 'Working' | 'Busy' | 'Absent';
 
-// Department type based on available options
-export type Department = "Management" | "Engineering" | "Design" | "Marketing" | "Sales";
-
+export interface Rate {
+  weekdays: { [key: string]: number };
+  saturday: { [key: string]: number };
+  sunday: { [key: string]: number };
+}
 // Base team member interface with common properties
 export interface TeamMember {
   id: string;
@@ -11,9 +13,19 @@ export interface TeamMember {
   role: string;
   email: string;
   phone: string;
-  department: Department;
+  department: string;
   status: TeamMemberStatus;
+  cscsCard?: {
+    number: string;
+    expiryDate: string;
+  };
+  bankDetails?: {
+    accountNumber: string;
+    accountName: string;
+    sortCode: string;
+  };
   avatar?: string;
+  rate?: Rate;
   joinDate: string;
 }
 
