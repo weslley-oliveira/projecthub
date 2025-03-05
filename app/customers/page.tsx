@@ -56,22 +56,13 @@ import {
   Eye
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Customer } from "@/app/data/customers/mockCustomers";
+import { Customer } from "@/app/types/customer";
 
 export default function CustomersPage() {
   const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [newCustomer, setNewCustomer] = useState<Partial<Customer>>({
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    address: "",
-    status: "active"
-  });
 
   useEffect(() => {
     fetchCustomers();
@@ -80,49 +71,22 @@ export default function CustomersPage() {
   const fetchCustomers = async () => {
     try {
       const response = await fetch("/api/customers");
-      if (!response.ok) throw new Error("Erro ao buscar clientes");
+      if (!response.ok) throw new Error("Error fetching customers");
       const data = await response.json();
       setCustomers(data);
     } catch (error) {
-      console.error("Erro ao buscar clientes:", error);
+      console.error("Error fetching customers:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const openAddCustomerDialog = () => {
-    setNewCustomer({
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      address: "",
-      status: "active"
-    });
-    setIsAddDialogOpen(true);
+    router.push('/customers/new');
   };
 
   const openEditCustomerDialog = (customer: Customer) => {
     router.push(`/customers/${customer.id}/edit`);
-  };
-
-  const addCustomer = async () => {
-    try {
-      const response = await fetch("/api/customers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newCustomer),
-      });
-
-      if (!response.ok) throw new Error("Erro ao criar cliente");
-      
-      setIsAddDialogOpen(false);
-      fetchCustomers();
-    } catch (error) {
-      console.error("Erro ao adicionar cliente:", error);
-    }
   };
 
   const removeCustomer = async (id: string) => {
@@ -131,18 +95,17 @@ export default function CustomersPage() {
         method: "DELETE",
       });
 
-      if (!response.ok) throw new Error("Erro ao excluir cliente");
+      if (!response.ok) throw new Error("Error deleting customer");
       
       fetchCustomers();
     } catch (error) {
-      console.error("Erro ao remover cliente:", error);
+      console.error("Error removing customer:", error);
     }
   };
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.company.toLowerCase().includes(searchTerm.toLowerCase())
+    customer.contact.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -150,7 +113,7 @@ export default function CustomersPage() {
       <DashboardLayout>
         <div className="container mx-auto py-6">
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Carregando...</p>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -161,37 +124,24 @@ export default function CustomersPage() {
     <DashboardLayout>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Clientes</h1>
-            <p className="text-muted-foreground">
-              Gerencie seus clientes e suas informações
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold">Customers</h1>
           <Button onClick={openAddCustomerDialog}>
             <Plus className="mr-2 h-4 w-4" />
-            Novo Cliente
+            New Customer
           </Button>
         </div>
 
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Lista de Clientes</CardTitle>
-                <CardDescription>
-                  Visualize e gerencie todos os seus clientes
-                </CardDescription>
-              </div>
               <div className="flex items-center space-x-2">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar clientes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search customers..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-[300px]"
+                />
               </div>
             </div>
           </CardHeader>
@@ -199,38 +149,39 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Contato</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Address</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Data de Cadastro</TableHead>
-                  <TableHead className="w-[100px]">Ações</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCustomers.map((customer) => (
+                {customers.map((customer) => (
                   <TableRow key={customer.id}>
-                    <TableCell className="font-medium">{customer.name}</TableCell>
-                    <TableCell>{customer.company}</TableCell>
+                    <TableCell>{customer.name}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <div className="flex items-center">
-                          <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
-                          {customer.email}
-                        </div>
-                        <div className="flex items-center">
-                          <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
-                          {customer.phone}
-                        </div>
+                        <span>{customer.contact.name}</span>
+                        <span className="text-sm text-muted-foreground">{customer.contact.email}</span>
+                        <span className="text-sm text-muted-foreground">{customer.contact.phone}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={customer.status === "active" ? "default" : "secondary"}>
-                        {customer.status === "active" ? "Ativo" : "Inativo"}
-                      </Badge>
+                      <div className="flex flex-col">
+                        <span>{customer.address.street}, {customer.address.number}</span>
+                        {customer.address.complement && (
+                          <span className="text-sm text-muted-foreground">{customer.address.complement}</span>
+                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {customer.address.city} - {customer.address.postcode}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(customer.createdAt).toLocaleDateString("pt-BR")}
+                      <Badge variant={customer.status === "Active" ? "default" : "secondary"}>
+                        {customer.status}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -240,22 +191,13 @@ export default function CustomersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => router.push(`/customers/${customer.id}/view`)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Visualizar
-                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEditCustomerDialog(customer)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Editar
+                            Edit
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => removeCustomer(customer.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
+                          <DropdownMenuItem onClick={() => router.push(`/customers/${customer.id}`)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -266,89 +208,6 @@ export default function CustomersPage() {
             </Table>
           </CardContent>
         </Card>
-
-        {/* Dialog para adicionar cliente */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Adicionar Novo Cliente</DialogTitle>
-              <DialogDescription>
-                Preencha as informações do novo cliente
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input
-                  id="name"
-                  value={newCustomer.name}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newCustomer.email}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <Input
-                  id="phone"
-                  value={newCustomer.phone}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="company">Empresa</Label>
-                <Input
-                  id="company"
-                  value={newCustomer.company}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, company: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="address">Endereço</Label>
-                <Input
-                  id="address"
-                  value={newCustomer.address}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={newCustomer.status}
-                  onValueChange={(value: "active" | "inactive") =>
-                    setNewCustomer({ ...newCustomer, status: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={addCustomer}>Adicionar</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </DashboardLayout>
   );

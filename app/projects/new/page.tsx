@@ -27,18 +27,26 @@ import {
 import { ArrowLeft, Briefcase, MapPin, Phone, Plus, Minus } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
-import { Address } from "@/components/ui/address";
-import { Contact, WorkforceType, AddressData, Project } from "@/app/types/project";
+import { AddressDialog } from "@/components/address/address-dialog";
+import { Contact, WorkforceType, Project } from "@/app/types/project";
+import { CustomerAddress } from "@/app/types/customer";
 
 export default function NewProjectPage() {
   const router = useRouter();
   const { toast } = useToast();
   
   // Estados
-  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [workforceDialogOpen, setWorkforceDialogOpen] = useState(false);
-  const [projectAddress, setProjectAddress] = useState<AddressData | undefined>(undefined);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+  const [projectAddress, setProjectAddress] = useState<CustomerAddress>({
+    street: "",
+    number: "",
+    complement: "",
+    city: "",
+    postcode: "",
+    country: ""
+  });
   const [projectContact, setProjectContact] = useState<Contact | undefined>(undefined);
   const [workforce, setWorkforce] = useState<WorkforceType[]>([
     { type: "Fitter", quantity: 0 },
@@ -47,11 +55,6 @@ export default function NewProjectPage() {
     { type: "Supervisor", quantity: 0 }
   ]);
   const [loading, setLoading] = useState(false);
-
-  // Função para abrir diálogo de endereço
-  const openAddressDialog = () => {
-    setAddressDialogOpen(true);
-  };
   
   // Função para abrir diálogo de contato
   const openContactDialog = () => {
@@ -61,16 +64,6 @@ export default function NewProjectPage() {
   // Função para abrir diálogo de mão de obra
   const openWorkforceDialog = () => {
     setWorkforceDialogOpen(true);
-  };
-  
-  // Função para salvar endereço
-  const saveProjectAddress = () => {
-    toast({
-      title: "Endereço adicionado",
-      description: "O endereço foi adicionado ao projeto.",
-    });
-    
-    setAddressDialogOpen(false);
   };
   
   // Função para salvar contato
@@ -270,10 +263,24 @@ export default function NewProjectPage() {
               
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Project Address</h3>
-                <Address
-                  onAddressChange={setProjectAddress}
-                  className="border rounded-lg p-4"
-                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setIsAddressDialogOpen(true)}
+                >
+                  {projectAddress.street ? "Edit Address" : "Add Address"}
+                </Button>
+                {projectAddress.street && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {projectAddress.street}, {projectAddress.number}
+                    {projectAddress.complement && ` - ${projectAddress.complement}`}
+                    <br />
+                    {projectAddress.city}
+                    <br />
+                    {projectAddress.postcode} - {projectAddress.country}
+                  </div>
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
@@ -285,30 +292,6 @@ export default function NewProjectPage() {
           </form>
         </Card>
       </div>
-      
-      {/* Diálogo de Endereço */}
-      <Dialog 
-        open={addressDialogOpen} 
-        onOpenChange={(open) => setAddressDialogOpen(open)}
-      >
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Address Registration</DialogTitle>
-            <DialogDescription>
-              Add an address for the new project
-            </DialogDescription>
-          </DialogHeader>
-          <Address 
-            onAddressChange={setProjectAddress}
-            defaultValues={projectAddress}
-            className="py-4"
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddressDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveProjectAddress}>Save Address</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       
       {/* Diálogo de Contato */}
       <Dialog 
@@ -406,6 +389,14 @@ export default function NewProjectPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AddressDialog
+        open={isAddressDialogOpen}
+        onOpenChange={setIsAddressDialogOpen}
+        address={projectAddress}
+        onAddressChange={setProjectAddress}
+        onSave={() => setIsAddressDialogOpen(false)}
+      />
     </DashboardLayout>
   );
 }

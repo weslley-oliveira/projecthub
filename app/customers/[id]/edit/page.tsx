@@ -22,20 +22,31 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { Customer } from "@/app/data/customers/mockCustomers";
+import { Customer } from "@/app/types/customer";
+import { AddressDialog } from "@/components/address/address-dialog";
 
 export default function EditCustomerPage() {
   const params = useParams();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [customer, setCustomer] = useState<Customer | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Omit<Customer, "id" | "createdAt" | "updatedAt" | "projects">>({
     name: "",
-    email: "",
-    phone: "",
-    company: "",
-    address: "",
-    status: "active" as const
+    status: "Active",
+    contact: {
+      name: "",
+      phone: "",
+      email: ""
+    },
+    address: {
+      street: "",
+      number: "",
+      complement: "",
+      city: "",
+      postcode: "",
+      country: ""
+    }
   });
 
   useEffect(() => {
@@ -45,19 +56,17 @@ export default function EditCustomerPage() {
   const fetchCustomerDetails = async () => {
     try {
       const response = await fetch(`/api/customers/${params.id}`);
-      if (!response.ok) throw new Error("Erro ao buscar detalhes do cliente");
+      if (!response.ok) throw new Error("Error fetching customer details");
       const data = await response.json();
       setCustomer(data);
       setFormData({
         name: data.name,
-        email: data.email,
-        phone: data.phone,
-        company: data.company,
-        address: data.address,
-        status: data.status
+        status: data.status,
+        contact: data.contact,
+        address: data.address
       });
     } catch (error) {
-      console.error("Erro ao buscar detalhes do cliente:", error);
+      console.error("Error fetching customer details:", error);
     }
   };
 
@@ -74,11 +83,11 @@ export default function EditCustomerPage() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error("Erro ao atualizar cliente");
+      if (!response.ok) throw new Error("Error updating customer");
       
       router.push(`/customers/${params.id}`);
     } catch (error) {
-      console.error("Erro ao atualizar cliente:", error);
+      console.error("Error updating customer:", error);
     } finally {
       setLoading(false);
     }
@@ -89,7 +98,7 @@ export default function EditCustomerPage() {
       <DashboardLayout>
         <div className="container mx-auto py-6">
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Carregando...</p>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -103,85 +112,106 @@ export default function EditCustomerPage() {
           <Link href={`/customers/${params.id}`}>
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar para Detalhes do Cliente
+              Back to Customer Details
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">Editar Cliente</h1>
+          <h1 className="text-3xl font-bold">Edit Customer</h1>
           <p className="text-muted-foreground">
-            Atualize as informações do cliente
+            Update customer information
           </p>
         </div>
 
         <Card>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="company">Empresa</Label>
-                  <Input
-                    id="company"
-                    value={formData.company}
-                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    required
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contactName">Contact Name</Label>
+                <Input
+                  id="contactName"
+                  value={formData.contact.name}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    contact: { ...formData.contact, name: e.target.value }
+                  })}
+                  required
+                />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    value={formData.contact.email}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      contact: { ...formData.contact, email: e.target.value }
+                    })}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
+                  <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    value={formData.contact.phone}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      contact: { ...formData.contact, phone: e.target.value }
+                    })}
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address">Endereço</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  required
-                />
+                <Label>Address</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setIsAddressDialogOpen(true)}
+                >
+                  {formData.address.street ? "Edit Address" : "Add Address"}
+                </Button>
+                {formData.address.street && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {formData.address.street}, {formData.address.number}
+                    {formData.address.complement && ` - ${formData.address.complement}`}
+                    <br />
+                    {formData.address.city}
+                    <br />
+                    {formData.address.postcode} - {formData.address.country}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value: "active" | "inactive") =>
+                  onValueChange={(value: "Active" | "Inactive" | "Pending") =>
                     setFormData({ ...formData, status: value })
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o status" />
+                    <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -192,15 +222,23 @@ export default function EditCustomerPage() {
                   variant="outline"
                   onClick={() => router.push(`/customers/${params.id}`)}
                 >
-                  Cancelar
+                  Cancel
                 </Button>
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Salvando..." : "Salvar Alterações"}
+                  {loading ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
+
+        <AddressDialog
+          open={isAddressDialogOpen}
+          onOpenChange={setIsAddressDialogOpen}
+          address={formData.address}
+          onAddressChange={(address) => setFormData({ ...formData, address })}
+          onSave={() => setIsAddressDialogOpen(false)}
+        />
       </div>
     </DashboardLayout>
   );

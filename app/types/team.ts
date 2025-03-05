@@ -27,6 +27,14 @@ export interface TeamMember {
   avatar?: string;
   rate?: Rate;
   joinDate: string;
+  address?: {
+    street: string;
+    number: string;
+    complement?: string;
+    city: string;
+    postcode: string;
+    country: string;
+  };
 }
 
 // Simplified team member interface for project cards and lists

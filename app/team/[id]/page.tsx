@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,17 +10,20 @@ import { ArrowLeft, Edit } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/layout';
 import { TeamMember } from '@/app/types/team';
 
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
 
-
-export default function TeamMemberPage({ params }: { params: { id: string } }) {
+export default function TeamMemberPage({ params }: PageProps) {
   const router = useRouter();
+  const { id } = use(params);
   const [member, setMember] = useState<TeamMember | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMember = async () => {
       try {
-        const response = await fetch(`/api/team/${params.id}`);
+        const response = await fetch(`/api/team/${id}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch member: ${response.statusText}`);
         }
@@ -56,7 +59,7 @@ export default function TeamMemberPage({ params }: { params: { id: string } }) {
     };
 
     fetchMember();
-  }, [params.id]);
+  }, [id]);
 
   if (loading) return <div className="flex items-center justify-center h-screen">Loading...</div>;
   if (!member) return <div className="flex items-center justify-center h-screen">Member not found</div>;
@@ -85,16 +88,15 @@ export default function TeamMemberPage({ params }: { params: { id: string } }) {
             </div>
           </div>
           <div className="flex gap-2">
-          </div>
-            <Button onClick={() => router.push(`/team/${params.id}/rate`)}>
+            <Button onClick={() => router.push(`/team/${id}/rate`)}>
               <Edit className="h-4 w-4 mr-2" />
               Manage Rates
             </Button>
-            <Button onClick={() => router.push(`/team/${params.id}/edit`)}>
-
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Member
-          </Button>
+            <Button onClick={() => router.push(`/team/${id}/edit`)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Member
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

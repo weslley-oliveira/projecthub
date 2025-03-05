@@ -25,7 +25,7 @@ import {
   Eye
 } from "lucide-react";
 import Link from "next/link";
-import { Customer } from "@/app/data/customers/mockCustomers";
+import { Customer } from "@/app/types/customer";
 
 export default function CustomerDetailsPage() {
   const params = useParams();
@@ -40,11 +40,11 @@ export default function CustomerDetailsPage() {
   const fetchCustomerDetails = async () => {
     try {
       const response = await fetch(`/api/customers/${params.id}`);
-      if (!response.ok) throw new Error("Erro ao buscar detalhes do cliente");
+      if (!response.ok) throw new Error("Error fetching customer details");
       const data = await response.json();
       setCustomer(data);
     } catch (error) {
-      console.error("Erro ao buscar detalhes do cliente:", error);
+      console.error("Error fetching customer details:", error);
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export default function CustomerDetailsPage() {
       <DashboardLayout>
         <div className="container mx-auto py-6">
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Carregando...</p>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -67,7 +67,7 @@ export default function CustomerDetailsPage() {
       <DashboardLayout>
         <div className="container mx-auto py-6">
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Cliente não encontrado</p>
+            <p className="text-muted-foreground">Customer not found</p>
           </div>
         </div>
       </DashboardLayout>
@@ -81,147 +81,122 @@ export default function CustomerDetailsPage() {
           <Link href="/customers">
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar para Lista de Clientes
+              Back to Customers List
             </Button>
           </Link>
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold">{customer.name}</h1>
-              <p className="text-muted-foreground">{customer.company}</p>
+              <p className="text-muted-foreground">Customer Details</p>
             </div>
             <div className="flex items-center gap-4">
-              <Badge variant={customer.status === "active" ? "default" : "secondary"}>
-                {customer.status === "active" ? "Ativo" : "Inativo"}
+              <Badge variant={customer.status === "Active" ? "default" : "secondary"}>
+                {customer.status}
               </Badge>
+              <Button onClick={() => router.push(`/customers/${params.id}/rate`)}>
+                <DollarSign className="mr-2 h-4 w-4" />
+                Edit Rate
+              </Button>
               <Button onClick={() => router.push(`/customers/${params.id}/view`)}>
                 <Eye className="mr-2 h-4 w-4" />
-                Visualizar
-              </Button>
-              <Button onClick={() => router.push(`/customers/${params.id}/rate`)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Gerenciar Taxas
+                View
               </Button>
               <Button onClick={() => router.push(`/customers/${params.id}/edit`)}>
                 <Edit className="mr-2 h-4 w-4" />
-                Editar Cliente
+                Edit Customer
               </Button>
             </div>
           </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Informações do Cliente */}
           <Card>
             <CardHeader>
-              <CardTitle>Informações do Cliente</CardTitle>
+              <CardTitle>Contact Information</CardTitle>
               <CardDescription>
-                Detalhes de contato e informações básicas
+                Customer contact details
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center">
                   <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>{customer.email}</span>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p>{customer.contact.email}</p>
+                  </div>
                 </div>
                 <div className="flex items-center">
                   <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>{customer.phone}</span>
-                </div>
-                <div className="flex items-start">
-                  <MapPin className="mr-2 h-4 w-4 text-muted-foreground mt-0.5" />
-                  <span>{customer.address}</span>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p>{customer.contact.phone}</p>
+                  </div>
                 </div>
                 <div className="flex items-center">
-                  <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>Cliente desde {new Date(customer.createdAt).toLocaleDateString("pt-BR")}</span>
+                  <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Contact Name</p>
+                    <p>{customer.contact.name}</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Estatísticas */}
           <Card>
             <CardHeader>
-              <CardTitle>Estatísticas</CardTitle>
+              <CardTitle>Address</CardTitle>
               <CardDescription>
-                Informações sobre gastos e projetos
+                Customer location
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-4">
                 <div className="flex items-center">
-                  <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Gasto</p>
-                    <p className="text-2xl font-bold">£{customer.totalSpent.toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Projetos</p>
-                    <p className="text-2xl font-bold">{customer.projects}</p>
+                    <p className="text-sm text-muted-foreground">Address</p>
+                    <p>
+                      {customer.address.street}, {customer.address.number}
+                      {customer.address.complement && ` - ${customer.address.complement}`}
+                    </p>
+                    <p>{customer.address.city}</p>
+                    <p>{customer.address.postcode}</p>
+                    <p>{customer.address.country}</p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Taxas */}
-          {customer.rate && (
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Taxas Atuais</CardTitle>
-                <CardDescription>
-                  Taxas por período do dia
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-3">
-                  {/* Dias Úteis */}
-                  <div>
-                    <h3 className="font-medium mb-2">Dias Úteis</h3>
-                    <div className="space-y-2">
-                      {Object.entries(customer.rate.weekdays).map(([time, rate]) => (
-                        <div key={time} className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">{time}</span>
-                          <span className="font-medium">£{rate.toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Sábado */}
-                  <div>
-                    <h3 className="font-medium mb-2">Sábado</h3>
-                    <div className="space-y-2">
-                      {Object.entries(customer.rate.saturday).map(([time, rate]) => (
-                        <div key={time} className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">{time}</span>
-                          <span className="font-medium">£{rate.toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Domingo */}
-                  <div>
-                    <h3 className="font-medium mb-2">Domingo</h3>
-                    <div className="space-y-2">
-                      {Object.entries(customer.rate.sunday).map(([time, rate]) => (
-                        <div key={time} className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">{time}</span>
-                          <span className="font-medium">£{rate.toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Statistics</CardTitle>
+            <CardDescription>
+              Information about spending and projects
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex items-center">
+                <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Created At</p>
+                  <p className="text-2xl font-bold">{new Date(customer.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+              <div className="flex items-center">
+                <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Projects</p>
+                  <p className="text-2xl font-bold">{customer.projects?.length || "0"}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );

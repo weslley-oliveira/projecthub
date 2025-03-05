@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,20 @@ import { ArrowLeft } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/layout';
 import { TeamMember } from '@/app/types/team';
 
-export default function TeamMemberPage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default function TeamMemberPage({ params }: PageProps) {
   const router = useRouter();
+  const { id } = use(params);
   const [member, setMember] = useState<TeamMember | null>(null);
   const [isEditing, setIsEditing] = useState(true);
 
   useEffect(() => {
     const fetchMember = async () => {
       try {
-        const response = await fetch(`/api/team/${params.id}`);
+        const response = await fetch(`/api/team/${id}`);
         if (!response.ok) throw new Error('Failed to fetch member');
         const data = await response.json();
         setMember(data);
@@ -28,14 +33,14 @@ export default function TeamMemberPage({ params }: { params: { id: string } }) {
     };
 
     fetchMember();
-  }, [params.id]);
+  }, [id]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!member) return;
 
     try {
-      const response = await fetch(`/api/team/${params.id}`, {
+      const response = await fetch(`/api/team/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(member),
@@ -52,7 +57,7 @@ export default function TeamMemberPage({ params }: { params: { id: string } }) {
     if (!confirm('Are you sure you want to delete this team member?')) return;
 
     try {
-      const response = await fetch(`/api/team/${params.id}`, {
+      const response = await fetch(`/api/team/${id}`, {
         method: 'DELETE',
       });
 

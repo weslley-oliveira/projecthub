@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Customer, Rate } from "@/app/data/customers/mockCustomers";
-import { ArrowLeft, Plus, Trash2, Edit } from "lucide-react";
-import Link from "next/link";
+import { Customer } from "@/app/types/customer";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 
 interface TimeSlot {
   startTime: string;
@@ -22,9 +21,14 @@ interface DayRates {
   [key: string]: TimeSlot[];
 }
 
-export default function RatePage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default function CustomerRatePage({ params }: PageProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { id } = use(params);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [rates, setRates] = useState<DayRates>(() => {
     const defaultRates = {
@@ -46,14 +50,14 @@ export default function RatePage({ params }: { params: { id: string } }) {
   });
 
   useEffect(() => {
-    const fetchCustomer = async () => {
+    const fetchCustomerDetails = async () => {
       try {
-        const response = await fetch(`/api/customers/${params.id}`);
-        if (!response.ok) throw new Error('Erro ao buscar dados do cliente');
+        const response = await fetch(`/api/customers/${id}`);
+        if (!response.ok) throw new Error("Error fetching customer details");
         const data = await response.json();
         setCustomer(data);
         if (data.rate) {
-          // Converter dados de rate para formato TimeSlot
+          // Convert rate data to TimeSlot format
           const convertedRates: DayRates = {
             weekdays: Object.entries(data.rate.weekdays).map(([time, rate]) => ({
               startTime: time.split('-')[0],
@@ -74,17 +78,17 @@ export default function RatePage({ params }: { params: { id: string } }) {
           setRates(convertedRates);
         }
       } catch (error) {
-        console.error('Erro:', error);
+        console.error("Error fetching customer details:", error);
         toast({
-          title: "Erro",
-          description: "Erro ao carregar dados do cliente",
+          title: "Error",
+          description: "Failed to load customer data",
           variant: "destructive"
         });
       }
     };
 
-    fetchCustomer();
-  }, [params.id, toast]);
+    fetchCustomerDetails();
+  }, [id, toast]);
 
   const addTimeSlot = (day: keyof DayRates) => {
     setRates(prev => ({
@@ -124,32 +128,35 @@ export default function RatePage({ params }: { params: { id: string } }) {
       }, {} as { [key: string]: number });
     };
 
-    const formattedRate: Rate = {
+    const formattedRate = {
       weekdays: formatRates(rates.weekdays),
       saturday: formatRates(rates.saturday),
       sunday: formatRates(rates.sunday)
     };
 
     try {
-      const response = await fetch(`/api/customers/${params.id}/rate`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rate: formattedRate })
+      const response = await fetch(`/api/customers/${id}/rate`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ rate: formattedRate }),
       });
 
-      if (!response.ok) throw new Error('Erro ao atualizar taxas');
-
+      if (!response.ok) throw new Error("Error saving rates");
+      
       toast({
-        title: "Sucesso",
-        description: "Taxas atualizadas com sucesso"
+        title: "Success",
+        description: "Rates updated successfully",
       });
 
-      router.push(`/customers/${params.id}`);
+      router.push(`/customers/${id}`);
     } catch (error) {
+      console.error("Error saving rates:", error);
       toast({
-        title: "Erro",
-        description: "Erro ao atualizar taxas",
-        variant: "destructive"
+        title: "Error",
+        description: "Error saving rates",
+        variant: "destructive",
       });
     }
   };
@@ -164,7 +171,7 @@ export default function RatePage({ params }: { params: { id: string } }) {
                 type="time"
                 value={slot.startTime}
                 onChange={(e) => updateTimeSlot(day, index, 'startTime', e.target.value)}
-                placeholder="Hora Inicial"
+                placeholder="Start Time"
               />
             </div>
             <div className="space-y-2">
@@ -172,7 +179,7 @@ export default function RatePage({ params }: { params: { id: string } }) {
                 type="time"
                 value={slot.endTime}
                 onChange={(e) => updateTimeSlot(day, index, 'endTime', e.target.value)}
-                placeholder="Hora Final"
+                placeholder="End Time"
               />
             </div>
           </div>
@@ -181,7 +188,7 @@ export default function RatePage({ params }: { params: { id: string } }) {
               type="number"
               value={slot.rate}
               onChange={(e) => updateTimeSlot(day, index, 'rate', parseFloat(e.target.value))}
-              placeholder="Taxa (£)"
+              placeholder="Rate (£)"
               min="0"
               step="0.01"
             />
@@ -201,7 +208,7 @@ export default function RatePage({ params }: { params: { id: string } }) {
         className="w-full"
       >
         <Plus className="h-4 w-4 mr-2" />
-        Adicionar Horário
+        Add Time Slot
       </Button>
     </div>
   );
@@ -210,7 +217,7 @@ export default function RatePage({ params }: { params: { id: string } }) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-[60vh]">
-          <p>Carregando...</p>
+          <p>Loading...</p>
         </div>
       </DashboardLayout>
     );
@@ -221,33 +228,27 @@ export default function RatePage({ params }: { params: { id: string } }) {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Link href="/customers">
-              <Button variant="ghost" className="mb-4">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar para Lista de Clientes
-              </Button>
-            </Link>
-            <Button onClick={() => router.push(`/customers/${params.id}/rate`)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Gerenciar Taxas
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="h-4 w-4" />
             </Button>
-            <Button onClick={() => router.push(`/customers/${params.id}/edit`)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Editar Cliente
-            </Button>
+            <h1 className="text-3xl font-bold">Manage Rates</h1>
           </div>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Configurações de Taxa para {customer.name}</CardTitle>
+            <CardTitle>Rate Settings for {customer.name}</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="weekdays" className="space-y-4">
               <TabsList>
-                <TabsTrigger value="weekdays">Dias Úteis</TabsTrigger>
-                <TabsTrigger value="saturday">Sábado</TabsTrigger>
-                <TabsTrigger value="sunday">Domingo</TabsTrigger>
+                <TabsTrigger value="weekdays">Weekdays</TabsTrigger>
+                <TabsTrigger value="saturday">Saturday</TabsTrigger>
+                <TabsTrigger value="sunday">Sunday</TabsTrigger>
               </TabsList>
 
               <TabsContent value="weekdays" className="space-y-4">
@@ -268,9 +269,9 @@ export default function RatePage({ params }: { params: { id: string } }) {
                 variant="outline"
                 onClick={() => router.back()}
               >
-                Cancelar
+                Cancel
               </Button>
-              <Button onClick={handleSave}>Salvar Alterações</Button>
+              <Button onClick={handleSave}>Save Changes</Button>
             </div>
           </CardContent>
         </Card>

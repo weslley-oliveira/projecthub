@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/layout";
 import { Button } from "@/components/ui/button";
@@ -21,9 +21,14 @@ interface DayRates {
   [key: string]: TimeSlot[];
 }
 
-export default function RatePage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default function RatePage({ params }: PageProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const { id } = use(params);
   const [member, setMember] = useState<TeamMember | null>(null);
   const [rates, setRates] = useState<DayRates>(() => {
     const defaultRates = {
@@ -47,7 +52,7 @@ export default function RatePage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchMember = async () => {
       try {
-        const response = await fetch(`/api/team/${params.id}`);
+        const response = await fetch(`/api/team/${id}`);
         if (!response.ok) throw new Error('Failed to fetch member data');
         const data = await response.json();
         setMember(data);
@@ -83,7 +88,7 @@ export default function RatePage({ params }: { params: { id: string } }) {
     };
 
     fetchMember();
-  }, [params.id, toast]);
+  }, [id, toast]);
 
   const addTimeSlot = (day: keyof DayRates) => {
     setRates(prev => ({
@@ -130,7 +135,7 @@ export default function RatePage({ params }: { params: { id: string } }) {
     };
 
     try {
-      const response = await fetch(`/api/team/${params.id}/rate`, {
+      const response = await fetch(`/api/team/${id}/rate`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rate: formattedRate })
@@ -143,7 +148,7 @@ export default function RatePage({ params }: { params: { id: string } }) {
         description: "Rates updated successfully"
       });
 
-      router.push(`/team/${params.id}`);
+      router.push(`/team/${id}`);
     } catch (error) {
       toast({
         title: "Error",

@@ -45,7 +45,8 @@ import {
   Printer, 
   Search, 
   Send, 
-  X 
+  X,
+  MapPin
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -56,18 +57,18 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Customer } from "@/app/types/customer";
+import { MockCustomer } from "@/app/data/customers/mockCustomers";
+import { cn } from "@/lib/utils";
+import { Eye } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Project {
   id: string;
   title: string;
   description: string;
   status: "In Progress" | "Completed" | "On Hold" | "Planned";
-  customer: {
-    id: string;
-    name: string;
-    company: string;
-    email: string;
-  };
+  customer: Pick<Customer, "id" | "name" | "document" | "type" | "contact">;
   amount: number;
   completedDate: Date | null;
 }
@@ -75,12 +76,7 @@ interface Project {
 interface Invoice {
   id: string;
   number: string;
-  customer: {
-    id: string;
-    name: string;
-    company: string;
-    email: string;
-  };
+  customer: Pick<Customer, "id" | "name" | "document" | "type" | "contact">;
   status: "Draft" | "Sent" | "Paid" | "Overdue";
   issueDate: Date;
   dueDate: Date;
@@ -93,43 +89,134 @@ export default function InvoicesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isCreateInvoiceOpen, setIsCreateInvoiceOpen] = useState(false);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [dateRange, setDateRange] = useState<{
     from: Date;
     to: Date;
   }>({
-    from: startOfWeek(new Date()),
-    to: endOfWeek(new Date())
+    from: new Date(),
+    to: new Date()
+  });
+  const [address, setAddress] = useState({
+    street: "",
+    number: "",
+    complement: "",
+    neighborhood: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: ""
   });
   
   // Mock data for customers
-  const customers = [
+  const customers: MockCustomer[] = [
     {
       id: "1",
       name: "Acme Corporation",
-      company: "Acme Inc.",
-      email: "contact@acmecorp.com",
-      address: "123 Business Ave, San Francisco, CA 94107",
+      document: "12.345.678/0001-90",
+      type: "Company",
+      status: "Active",
+      createdAt: "2024-03-04",
+      updatedAt: "2024-03-04",
+      contact: {
+        name: "John Doe",
+        phone: "(11) 99999-9999",
+        email: "contact@acmecorp.com",
+        position: "CEO"
+      },
+      address: {
+        street: "123 Business Ave",
+        number: "100",
+        neighborhood: "Financial District",
+        city: "San Francisco",
+        state: "CA",
+        zipCode: "94107",
+        country: "USA"
+      },
+      projects: ["1", "2"],
+      totalSpent: 14700,
+      projectsCount: 2
     },
     {
       id: "2",
       name: "Globex Industries",
-      company: "Globex Ltd.",
-      email: "info@globex.com",
-      address: "456 Corporate Blvd, New York, NY 10001",
+      document: "98.765.432/0001-10",
+      type: "Company",
+      status: "Active",
+      createdAt: "2024-03-03",
+      updatedAt: "2024-03-03",
+      contact: {
+        name: "Jane Smith",
+        phone: "(11) 98888-8888",
+        email: "info@globex.com",
+        position: "CTO"
+      },
+      address: {
+        street: "456 Corporate Blvd",
+        number: "200",
+        neighborhood: "Midtown",
+        city: "New York",
+        state: "NY",
+        zipCode: "10001",
+        country: "USA"
+      },
+      projects: ["3", "6"],
+      totalSpent: 15700,
+      projectsCount: 2
     },
     {
       id: "3",
       name: "Initech Systems",
-      company: "Initech LLC",
-      email: "support@initech.com",
-      address: "789 Tech Park, Austin, TX 78701",
+      document: "45.678.901/0001-20",
+      type: "Company",
+      status: "Active",
+      createdAt: "2024-03-02",
+      updatedAt: "2024-03-02",
+      contact: {
+        name: "Bob Wilson",
+        phone: "(11) 97777-7777",
+        email: "support@initech.com",
+        position: "Director"
+      },
+      address: {
+        street: "789 Tech Park",
+        number: "300",
+        neighborhood: "Downtown",
+        city: "Austin",
+        state: "TX",
+        zipCode: "78701",
+        country: "USA"
+      },
+      projects: ["4"],
+      totalSpent: 15000,
+      projectsCount: 1
     },
     {
       id: "4",
       name: "Soylent Corp",
-      company: "Soylent Enterprises",
-      email: "hello@soylent.com",
-      address: "101 Green St, Chicago, IL 60607",
+      document: "23.456.789/0001-30",
+      type: "Company",
+      status: "Active",
+      createdAt: "2024-03-01",
+      updatedAt: "2024-03-01",
+      contact: {
+        name: "Alice Johnson",
+        phone: "(11) 96666-6666",
+        email: "hello@soylent.com",
+        position: "Manager"
+      },
+      address: {
+        street: "101 Green St",
+        number: "400",
+        neighborhood: "Loop",
+        city: "Chicago",
+        state: "IL",
+        zipCode: "60607",
+        country: "USA"
+      },
+      projects: ["5"],
+      totalSpent: 4800,
+      projectsCount: 1
     },
   ];
   
@@ -140,7 +227,13 @@ export default function InvoicesPage() {
       title: "Website Redesign",
       description: "Complete redesign of corporate website with modern UI/UX",
       status: "Completed",
-      customer: customers[0],
+      customer: {
+        id: customers[0].id,
+        name: customers[0].name,
+        document: customers[0].document,
+        type: customers[0].type,
+        contact: customers[0].contact
+      },
       amount: 8500,
       completedDate: new Date(2025, 3, 12),
     },
@@ -149,7 +242,13 @@ export default function InvoicesPage() {
       title: "CRM Integration",
       description: "Integration of new CRM system with existing tools",
       status: "Completed",
-      customer: customers[0],
+      customer: {
+        id: customers[0].id,
+        name: customers[0].name,
+        document: customers[0].document,
+        type: customers[0].type,
+        contact: customers[0].contact
+      },
       amount: 6200,
       completedDate: new Date(2025, 3, 14),
     },
@@ -158,7 +257,13 @@ export default function InvoicesPage() {
       title: "E-commerce Platform",
       description: "Development of online store with payment processing",
       status: "Completed",
-      customer: customers[1],
+      customer: {
+        id: customers[1].id,
+        name: customers[1].name,
+        document: customers[1].document,
+        type: customers[1].type,
+        contact: customers[1].contact
+      },
       amount: 12500,
       completedDate: new Date(2025, 3, 10),
     },
@@ -167,7 +272,13 @@ export default function InvoicesPage() {
       title: "Mobile App Development",
       description: "iOS and Android app for customer engagement",
       status: "Completed",
-      customer: customers[2],
+      customer: {
+        id: customers[2].id,
+        name: customers[2].name,
+        document: customers[2].document,
+        type: customers[2].type,
+        contact: customers[2].contact
+      },
       amount: 15000,
       completedDate: new Date(2025, 3, 8),
     },
@@ -176,7 +287,13 @@ export default function InvoicesPage() {
       title: "Security Audit",
       description: "Comprehensive security audit of all systems",
       status: "Completed",
-      customer: customers[3],
+      customer: {
+        id: customers[3].id,
+        name: customers[3].name,
+        document: customers[3].document,
+        type: customers[3].type,
+        contact: customers[3].contact
+      },
       amount: 4800,
       completedDate: new Date(2025, 3, 15),
     },
@@ -185,7 +302,13 @@ export default function InvoicesPage() {
       title: "Content Migration",
       description: "Migration of content to new CMS platform",
       status: "Completed",
-      customer: customers[1],
+      customer: {
+        id: customers[1].id,
+        name: customers[1].name,
+        document: customers[1].document,
+        type: customers[1].type,
+        contact: customers[1].contact
+      },
       amount: 3200,
       completedDate: new Date(2025, 3, 9),
     },
@@ -196,7 +319,13 @@ export default function InvoicesPage() {
     {
       id: "1",
       number: "INV-2025-001",
-      customer: customers[0],
+      customer: {
+        id: customers[0].id,
+        name: customers[0].name,
+        document: customers[0].document,
+        type: customers[0].type,
+        contact: customers[0].contact
+      },
       status: "Paid",
       issueDate: new Date(2025, 2, 15),
       dueDate: new Date(2025, 3, 15),
@@ -206,7 +335,13 @@ export default function InvoicesPage() {
     {
       id: "2",
       number: "INV-2025-002",
-      customer: customers[1],
+      customer: {
+        id: customers[1].id,
+        name: customers[1].name,
+        document: customers[1].document,
+        type: customers[1].type,
+        contact: customers[1].contact
+      },
       status: "Sent",
       issueDate: new Date(2025, 3, 1),
       dueDate: new Date(2025, 4, 1),
@@ -216,7 +351,13 @@ export default function InvoicesPage() {
     {
       id: "3",
       number: "INV-2025-003",
-      customer: customers[2],
+      customer: {
+        id: customers[2].id,
+        name: customers[2].name,
+        document: customers[2].document,
+        type: customers[2].type,
+        contact: customers[2].contact
+      },
       status: "Overdue",
       issueDate: new Date(2025, 2, 1),
       dueDate: new Date(2025, 3, 1),
@@ -226,7 +367,13 @@ export default function InvoicesPage() {
     {
       id: "4",
       number: "INV-2025-004",
-      customer: customers[3],
+      customer: {
+        id: customers[3].id,
+        name: customers[3].name,
+        document: customers[3].document,
+        type: customers[3].type,
+        contact: customers[3].contact
+      },
       status: "Draft",
       issueDate: new Date(2025, 3, 16),
       dueDate: new Date(2025, 4, 16),
@@ -243,7 +390,7 @@ export default function InvoicesPage() {
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch = invoice.number.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          invoice.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         invoice.customer.company.toLowerCase().includes(searchQuery.toLowerCase());
+                         invoice.customer.document.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || invoice.status === statusFilter;
     
@@ -310,7 +457,13 @@ export default function InvoicesPage() {
     const newInvoice: Invoice = {
       id: `${invoices.length + 1}`,
       number: `INV-2025-00${invoices.length + 1}`,
-      customer,
+      customer: {
+        id: customer.id,
+        name: customer.name,
+        document: customer.document,
+        type: customer.type,
+        contact: customer.contact
+      },
       status: "Draft",
       issueDate: new Date(),
       dueDate: addDays(new Date(), 30),
@@ -348,500 +501,359 @@ export default function InvoicesPage() {
     Overdue: "destructive",
   } as const;
 
+  const handleViewInvoice = (invoice: Invoice) => {
+    // Implementar visualização da fatura
+    console.log("Visualizar fatura:", invoice);
+  };
+
+  const handleDownloadInvoice = (invoice: Invoice) => {
+    // Implementar download da fatura
+    console.log("Download fatura:", invoice);
+  };
+
+  const handlePrintInvoice = (invoice: Invoice) => {
+    // Implementar impressão da fatura
+    console.log("Imprimir fatura:", invoice);
+  };
+
+  const handleSendInvoice = (invoice: Invoice) => {
+    // Implementar envio da fatura
+    console.log("Enviar fatura:", invoice);
+  };
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <h1 className="text-3xl font-bold">Invoices</h1>
-          
+      <div className="container mx-auto py-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Faturas</h1>
           <Button onClick={() => setIsCreateInvoiceOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Create Invoice</span>
-            <span className="sm:hidden">Create</span>
+            Nova Fatura
           </Button>
         </div>
-        
-        {/* Filters */}
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search invoices..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <Select
-            value={statusFilter}
-            onValueChange={setStatusFilter}
-          >
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Invoices</SelectItem>
-              <SelectItem value="Draft">Draft</SelectItem>
-              <SelectItem value="Sent">Sent</SelectItem>
-              <SelectItem value="Paid">Paid</SelectItem>
-              <SelectItem value="Overdue">Overdue</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Invoices Tabs */}
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:inline-flex">
-            <TabsTrigger value="all" className="text-xs sm:text-sm">All</TabsTrigger>
-            <TabsTrigger value="draft" className="text-xs sm:text-sm">Draft</TabsTrigger>
-            <TabsTrigger value="sent" className="text-xs sm:text-sm">Sent</TabsTrigger>
-            <TabsTrigger value="paid" className="text-xs sm:text-sm">Paid</TabsTrigger>
-          </TabsList>
-          
-          {/* All Invoices Tab */}
-          <TabsContent value="all" className="mt-4">
-            <Card>
-              <CardContent className="p-0">
-                <div className="rounded-md overflow-hidden">
-                  <div className="min-w-[800px]">
-                    <div className="grid grid-cols-12 gap-2 border-b bg-muted/50 p-4 font-medium">
-                      <div className="col-span-2">Invoice #</div>
-                      <div className="col-span-3">Customer</div>
-                      <div className="col-span-2">Amount</div>
-                      <div className="col-span-2">Issue Date</div>
-                      <div className="col-span-1">Status</div>
-                      <div className="col-span-2 text-right">Actions</div>
-                    </div>
-                    
-                    {filteredInvoices.length > 0 ? (
-                      <div className="divide-y">
-                        {filteredInvoices.map((invoice) => (
-                          <div key={invoice.id} className="grid grid-cols-12 gap-2 p-4 items-center">
-                            <div className="col-span-2 font-medium">{invoice.number}</div>
-                            <div className="col-span-3">
-                              <div>
-                                <p className="font-medium">{invoice.customer.name}</p>
-                                <p className="text-sm text-muted-foreground">{invoice.customer.company}</p>
-                              </div>
-                            </div>
-                            <div className="col-span-2 font-medium">{formatCurrency(invoice.amount)}</div>
-                            <div className="col-span-2">{format(invoice.issueDate, 'MMM d, yyyy')}</div>
-                            <div className="col-span-1">
-                              <Badge variant={statusColor[invoice.status]}>
-                                {invoice.status}
-                              </Badge>
-                            </div>
-                            <div className="col-span-2 flex items-center justify-end gap-2">
-                              <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                                <Printer className="h-4 w-4" />
-                                <span className="sr-only">Print</span>
-                              </Button>
-                              <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                                <Download className="h-4 w-4" />
-                                <span className="sr-only">Download</span>
-                              </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">More</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>View Details</DropdownMenuItem>
-                                  <DropdownMenuItem>Edit</DropdownMenuItem>
-                                  {invoice.status === "Draft" && (
-                                    <DropdownMenuItem>
-                                      <Send className="mr-2 h-4 w-4" />
-                                      Send to Customer
-                                    </DropdownMenuItem>
-                                  )}
-                                  {invoice.status === "Sent" && (
-                                    <DropdownMenuItem>
-                                      <Check className="mr-2 h-4 w-4" />
-                                      Mark as Paid
-                                    </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuItem className="text-destructive">
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex h-40 flex-col items-center justify-center">
-                        <FileText className="h-8 w-8 text-muted-foreground mb-2" />
-                        <p className="text-muted-foreground">No invoices found</p>
-                        <Button variant="link" className="mt-2" onClick={() => setIsCreateInvoiceOpen(true)}>
-                          Create a new invoice
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Other tabs would have similar content but filtered by status */}
-          <TabsContent value="draft" className="mt-4">
-            <Card>
-              <CardContent className="p-0">
-                <div className="rounded-md overflow-hidden">
-                  <div className="min-w-[800px]">
-                    <div className="grid grid-cols-12 gap-2 border-b bg-muted/50 p-4 font-medium">
-                      <div className="col-span-2">Invoice #</div>
-                      <div className="col-span-3">Customer</div>
-                      <div className="col-span-2">Amount</div>
-                      <div className="col-span-2">Issue Date</div>
-                      <div className="col-span-1">Status</div>
-                      <div className="col-span-2 text-right">Actions</div>
-                    </div>
-                    
-                    {filteredInvoices.filter(inv => inv.status === "Draft").length > 0 ? (
-                      <div className="divide-y">
-                        {filteredInvoices
-                          .filter(inv => inv.status === "Draft")
-                          .map((invoice) => (
-                            <div key={invoice.id} className="grid grid-cols-12 gap-2 p-4 items-center">
-                              <div className="col-span-2 font-medium">{invoice.number}</div>
-                              <div className="col-span-3">
-                                <div>
-                                  <p className="font-medium">{invoice.customer.name}</p>
-                                  <p className="text-sm text-muted-foreground">{invoice.customer.company}</p>
-                                </div>
-                              </div>
-                              <div className="col-span-2 font-medium">{formatCurrency(invoice.amount)}</div>
-                              <div className="col-span-2">{format(invoice.issueDate, 'MMM d, yyyy')}</div>
-                              <div className="col-span-1">
-                                <Badge variant={statusColor[invoice.status]}>
-                                  {invoice.status}
-                                </Badge>
-                              </div>
-                              <div className="col-span-2 flex items-center justify-end gap-2">
-                                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                                  <Printer className="h-4 w-4" />
-                                  <span className="sr-only">Print</span>
-                                </Button>
-                                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                                  <Download className="h-4 w-4" />
-                                  <span className="sr-only">Download</span>
-                                </Button>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                      <span className="sr-only">More</span>
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>View Details</DropdownMenuItem>
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <Send className="mr-2 h-4 w-4" />
-                                      Send to Customer
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive">
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex h-40 flex-col items-center justify-center">
-                        <FileText className="h-8 w-8 text-muted-foreground mb-2" />
-                        <p className="text-muted-foreground">No draft invoices found</p>
-                        <Button variant="link" className="mt-2" onClick={() => setIsCreateInvoiceOpen(true)}>
-                          Create a new invoice
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Similar content for other tabs */}
-          <TabsContent value="sent" className="mt-4">
-            <Card>
-              <CardContent className="p-0">
-                <div className="flex h-40 flex-col items-center justify-center">
-                  <FileText className="h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground">View sent invoices here</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="paid" className="mt-4">
-            <Card>
-              <CardContent className="p-0">
-                <div className="flex h-40 flex-col items-center justify-center">
-                  <FileText className="h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground">View paid invoices here</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
 
-        {/* Mobile View */}
-        <div className="block md:hidden mt-6">
-          <h2 className="text-lg font-medium mb-4">Recent Invoices</h2>
-          <div className="space-y-4">
-            {filteredInvoices.slice(0, 5).map((invoice) => (
-              <Card key={invoice.id}>
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-center">
-                    <Badge variant={statusColor[invoice.status]}>
-                      {invoice.status}
-                    </Badge>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Download PDF</DropdownMenuItem>
-                        {invoice.status === "Draft" && (
-                          <DropdownMenuItem>Send to Customer</DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem className="text-destructive">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <CardTitle className="text-base mt-2">{invoice.number}</CardTitle>
-                  <CardDescription>{invoice.customer.company}</CardDescription>
-                </CardHeader>
-                <CardContent className="pb-2">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Amount:</span>
-                      <span className="font-medium">{formatCurrency(invoice.amount)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Issue Date:</span>
-                      <span>{format(invoice.issueDate, 'MMM d, yyyy')}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Due Date:</span>
-                      <span>{format(invoice.dueDate, 'MMM d, yyyy')}</span>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between pt-2">
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Printer className="mr-2 h-4 w-4" />
-                    Print
-                  </Button>
-                  <Button variant="outline" size="sm" className="w-full ml-2">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Create Invoice Dialog */}
-      <Dialog open={isCreateInvoiceOpen} onOpenChange={setIsCreateInvoiceOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Create New Invoice</DialogTitle>
-            <DialogDescription>
-              Generate an invoice for completed projects within a selected date range.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-6 py-4">
-            {/* Customer Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="customer">Customer</Label>
-              <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a customer" />
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar faturas..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-[300px]"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {customers.map(customer => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.company} ({customer.name})
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Draft">Rascunho</SelectItem>
+                  <SelectItem value="Sent">Enviada</SelectItem>
+                  <SelectItem value="Paid">Paga</SelectItem>
+                  <SelectItem value="Overdue">Vencida</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Número</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data de Emissão</TableHead>
+                  <TableHead>Data de Vencimento</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead className="w-[100px]">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell className="font-medium">{invoice.number}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span>{invoice.customer.name}</span>
+                        <span className="text-sm text-muted-foreground">{invoice.customer.document}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        invoice.status === "Paid" ? "default" :
+                        invoice.status === "Overdue" ? "destructive" :
+                        invoice.status === "Sent" ? "secondary" :
+                        "outline"
+                      }>
+                        {invoice.status === "Paid" ? "Paga" :
+                         invoice.status === "Overdue" ? "Vencida" :
+                         invoice.status === "Sent" ? "Enviada" :
+                         "Rascunho"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{format(invoice.issueDate, "dd/MM/yyyy")}</TableCell>
+                    <TableCell>{format(invoice.dueDate, "dd/MM/yyyy")}</TableCell>
+                    <TableCell>{formatCurrency(invoice.amount)}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewInvoice(invoice)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Visualizar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadInvoice(invoice)}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Download
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handlePrintInvoice(invoice)}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Imprimir
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleSendInvoice(invoice)}>
+                            <Send className="mr-2 h-4 w-4" />
+                            Enviar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Dialog open={isCreateInvoiceOpen} onOpenChange={setIsCreateInvoiceOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Nova Fatura</DialogTitle>
+              <DialogDescription>
+                Gere uma fatura para projetos concluídos dentro do período selecionado.
+              </DialogDescription>
+            </DialogHeader>
             
-            {/* Date Range Selection */}
-            <div className="space-y-2">
-              <Label>Date Range for Completed Projects</Label>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="grid gap-2 flex-1">
-                  <Label htmlFor="from">From</Label>
+            <div className="grid gap-6 py-4">
+              {/* Seleção de Cliente */}
+              <div className="space-y-2">
+                <Label htmlFor="customer">Cliente</Label>
+                <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map(customer => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name} ({customer.document})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Botão para abrir o popup de endereço */}
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsAddressDialogOpen(true)}
+              >
+                <MapPin className="mr-2 h-4 w-4" />
+                Adicionar Endereço
+              </Button>
+              
+              {/* Seleção de Período */}
+              <div className="space-y-2">
+                <Label>Período</Label>
+                <div className="flex items-center gap-4">
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full justify-start text-left font-normal"
+                        className={cn(
+                          "w-[300px] justify-start text-left font-normal",
+                          !dateRange.from && "text-muted-foreground"
+                        )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {dateRange.from ? (
-                          format(dateRange.from, "PPP")
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "dd/MM/yyyy")} -{" "}
+                              {format(dateRange.to, "dd/MM/yyyy")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "dd/MM/yyyy")
+                          )
                         ) : (
-                          <span>Pick a date</span>
+                          <span>Selecione um período</span>
                         )}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
-                        mode="single"
-                        selected={dateRange.from}
-                        onSelect={(date) => date && setDateRange(prev => ({ ...prev, from: date }))}
                         initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="grid gap-2 flex-1">
-                  <Label htmlFor="to">To</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange.to ? (
-                          format(dateRange.to, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={dateRange.to}
-                        onSelect={(date) => date && setDateRange(prev => ({ ...prev, to: date }))}
-                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange.from}
+                        selected={dateRange}
+                        onSelect={(range: any) => setDateRange(range)}
+                        numberOfMonths={2}
                       />
                     </PopoverContent>
                   </Popover>
                 </div>
               </div>
-            </div>
-            
-            {/* Projects Selection */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label>Completed Projects</Label>
-                <span className="text-sm text-muted-foreground">
-                  {selectedProjects.length} selected
-                </span>
-              </div>
-              
-              <Card>
-                <CardContent className="p-0">
-                  <div className="max-h-[300px] overflow-y-auto">
-                    <div className="grid grid-cols-12 gap-2 border-b bg-muted/50 p-3 font-medium text-sm">
-                      <div className="col-span-1"></div>
-                      <div className="col-span-4">Project</div>
-                      <div className="col-span-3">Customer</div>
-                      <div className="col-span-2">Completed Date</div>
-                      <div className="col-span-2 text-right">Amount</div>
-                    </div>
-                    
-                    {getProjectsInDateRange().length > 0 ? (
-                      <div className="divide-y">
-                        {getProjectsInDateRange().map((project) => (
-                          <div key={project.id} className="grid grid-cols-12 gap-2 p-3 items-center hover:bg-muted/30">
-                            <div className="col-span-1">
-                              <Checkbox
-                                checked={selectedProjects.includes(project.id)}
-                                onCheckedChange={() => toggleProjectSelection(project.id)}
-                              />
-                            </div>
-                            <div className="col-span-4">
-                              <p className="font-medium">{project.title}</p>
-                              <p className="text-xs text-muted-foreground line-clamp-1">{project.description}</p>
-                            </div>
-                            <div className="col-span-3">
-                              <p className="text-sm">{project.customer.company}</p>
-                            </div>
-                            <div className="col-span-2 text-sm">
-                              {project.completedDate && format(project.completedDate, 'MMM d, yyyy')}
-                            </div>
-                            <div className="col-span-2 text-right font-medium">
-                              {formatCurrency(project.amount)}
-                            </div>
-                          </div>
-                        ))}
+
+              {/* Lista de Projetos */}
+              <div className="space-y-2">
+                <Label>Projetos</Label>
+                <div className="space-y-4">
+                  {getProjectsInDateRange().map((project) => (
+                    <div key={project.id} className="flex items-center space-x-4">
+                      <Checkbox
+                        id={project.id}
+                        checked={selectedProjects.includes(project.id)}
+                        onCheckedChange={() => toggleProjectSelection(project.id)}
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor={project.id}>{project.title}</Label>
+                        <p className="text-sm text-muted-foreground">{project.description}</p>
                       </div>
-                    ) : (
-                      <div className="flex h-40 flex-col items-center justify-center">
-                        <p className="text-muted-foreground">No completed projects found in the selected date range</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Invoice Summary */}
-            {selectedProjects.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium mb-2">Invoice Summary</h3>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">Selected Projects:</span>
-                        <span>{selectedProjects.length}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">Subtotal:</span>
-                        <span>{formatCurrency(calculateTotal())}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">Tax (0%):</span>
-                        <span>{formatCurrency(0)}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold">Total:</span>
-                        <span className="text-lg font-bold">{formatCurrency(calculateTotal())}</span>
+                      <div className="text-right">
+                        <p className="font-medium">{formatCurrency(project.amount)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(project.completedDate!, "dd/MM/yyyy")}
+                        </p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
-          
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setIsCreateInvoiceOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={createInvoice} disabled={selectedProjects.length === 0 || selectedCustomer === ""}>
-              Create Invoice
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+              {/* Total */}
+              <div className="flex items-center justify-between border-t pt-4">
+                <span className="font-medium">Total</span>
+                <span className="text-2xl font-bold">{formatCurrency(calculateTotal())}</span>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateInvoiceOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={createInvoice}>Criar Fatura</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Popup de Endereço */}
+        <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Endereço de Faturamento</DialogTitle>
+              <DialogDescription>
+                Preencha o endereço para faturamento
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="street">Rua</Label>
+                <Input
+                  id="street"
+                  value={address.street}
+                  onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="number">Número</Label>
+                  <Input
+                    id="number"
+                    value={address.number}
+                    onChange={(e) => setAddress({ ...address, number: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="complement">Complemento</Label>
+                  <Input
+                    id="complement"
+                    value={address.complement}
+                    onChange={(e) => setAddress({ ...address, complement: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="neighborhood">Bairro</Label>
+                <Input
+                  id="neighborhood"
+                  value={address.neighborhood}
+                  onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="city">Cidade</Label>
+                  <Input
+                    id="city"
+                    value={address.city}
+                    onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="state">Estado</Label>
+                  <Input
+                    id="state"
+                    value={address.state}
+                    onChange={(e) => setAddress({ ...address, state: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="zipCode">CEP</Label>
+                  <Input
+                    id="zipCode"
+                    value={address.zipCode}
+                    onChange={(e) => setAddress({ ...address, zipCode: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country">País</Label>
+                  <Input
+                    id="country"
+                    value={address.country}
+                    onChange={(e) => setAddress({ ...address, country: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddressDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => {
+                // Aqui você pode adicionar a lógica para salvar o endereço
+                setIsAddressDialogOpen(false);
+              }}>
+                Salvar Endereço
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </DashboardLayout>
   );
 }
