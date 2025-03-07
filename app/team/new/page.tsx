@@ -10,22 +10,29 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { TeamMember, TeamMemberStatus } from "@/app/types/team";
 
-interface TeamMember {
+interface NewMemberForm {
   name: string;
   role: string;
-  department: string;
-  status: "Available" | "Working" | "Busy" | "Absent";
+  email: string;
+  phone: string;
+  status: TeamMemberStatus;
+  avatar?: string;
 }
+
+const initialFormState: NewMemberForm = {
+  name: '',
+  role: '',
+  email: '',
+  phone: '',
+  status: 'Available',
+  avatar: ''
+};
 
 export default function NewTeamMemberPage() {
   const router = useRouter();
-  const [member, setMember] = useState<TeamMember>({
-    name: '',
-    role: '',
-    department: '',
-    status: 'Available'
-  });
+  const [member, setMember] = useState<NewMemberForm>(initialFormState);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +74,7 @@ export default function NewTeamMemberPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-6">
+              <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Name</Label>
                   <Input
@@ -75,10 +82,8 @@ export default function NewTeamMemberPage() {
                     value={member.name}
                     onChange={(e) => setMember({ ...member, name: e.target.value })}
                     placeholder="Enter member name"
-                    required
                   />
                 </div>
-
                 <div className="grid gap-2">
                   <Label htmlFor="role">Role</Label>
                   <Input
@@ -86,29 +91,53 @@ export default function NewTeamMemberPage() {
                     value={member.role}
                     onChange={(e) => setMember({ ...member, role: e.target.value })}
                     placeholder="Enter member role"
-                    required
                   />
                 </div>
-
                 <div className="grid gap-2">
-                  <Label htmlFor="department">Department</Label>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={member.email}
+                    onChange={(e) => setMember({ ...member, email: e.target.value })}
+                    placeholder="Enter member email"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    value={member.phone}
+                    onChange={(e) => setMember({ ...member, phone: e.target.value })}
+                    placeholder="Enter member phone"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
                   <Select
-                    value={member.department}
-                    onValueChange={(value) => setMember({ ...member, department: value })}
+                    value={member.status}
+                    onValueChange={(value) => setMember({ ...member, status: value as TeamMemberStatus })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a department" />
+                      <SelectValue placeholder="Select a status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Management">Management</SelectItem>
-                      <SelectItem value="Engineering">Engineering</SelectItem>
-                      <SelectItem value="Design">Design</SelectItem>
-                      <SelectItem value="Marketing">Marketing</SelectItem>
-                      <SelectItem value="Sales">Sales</SelectItem>
+                      <SelectItem value="Available">Available</SelectItem>
+                      <SelectItem value="Working">Working</SelectItem>
+                      <SelectItem value="Busy">Busy</SelectItem>
+                      <SelectItem value="Absent">Absent</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
+                <div className="grid gap-2">
+                  <Label htmlFor="avatar">Avatar URL</Label>
+                  <Input
+                    id="avatar"
+                    value={member.avatar}
+                    onChange={(e) => setMember({ ...member, avatar: e.target.value })}
+                    placeholder="Enter avatar URL"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end space-x-4">

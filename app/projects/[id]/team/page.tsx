@@ -61,7 +61,6 @@ function getMockProject(id: string): Project {
         name: "John Doe",
         role: "Project Manager",
         avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60",
-        department: "Management",
         status: "Active",
       },
       {
@@ -69,7 +68,6 @@ function getMockProject(id: string): Project {
         name: "Sarah Johnson",
         role: "UI/UX Designer",
         avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60",
-        department: "Design",
         status: "Active",
       }
     ]
@@ -84,7 +82,6 @@ const getAllTeamMembers = (): TeamMember[] => {
       name: "John Doe",
       role: "Project Manager",
       avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60",
-      department: "Management",
       status: "Active",
     },
     {
@@ -92,7 +89,6 @@ const getAllTeamMembers = (): TeamMember[] => {
       name: "Sarah Johnson",
       role: "UI/UX Designer",
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60",
-      department: "Design",
       status: "Active",
     },
     {
@@ -100,7 +96,6 @@ const getAllTeamMembers = (): TeamMember[] => {
       name: "David Kim",
       role: "Full Stack Developer",
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60",
-      department: "Engineering",
       status: "Active",
     },
     {
@@ -108,7 +103,6 @@ const getAllTeamMembers = (): TeamMember[] => {
       name: "Maria Garcia",
       role: "Backend Developer",
       avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=60",
-      department: "Engineering",
       status: "On Leave",
     },
     {
@@ -116,7 +110,6 @@ const getAllTeamMembers = (): TeamMember[] => {
       name: "Ana Silva",
       role: "Marketing Specialist",
       avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=60",
-      department: "Marketing",
       status: "Active",
     },
     {
@@ -124,7 +117,6 @@ const getAllTeamMembers = (): TeamMember[] => {
       name: "Michael Johnson",
       role: "Frontend Developer",
       avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&auto=format&fit=crop&q=60",
-      department: "Engineering",
       status: "Active",
     },
     {
@@ -132,7 +124,6 @@ const getAllTeamMembers = (): TeamMember[] => {
       name: "Emily Chen",
       role: "QA Engineer",
       avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=60",
-      department: "Engineering",
       status: "Unavailable",
     },
     {
@@ -140,7 +131,6 @@ const getAllTeamMembers = (): TeamMember[] => {
       name: "Robert Wilson",
       role: "Product Manager",
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=60",
-      department: "Management",
       status: "Active",
     },
   ];
@@ -168,8 +158,7 @@ export default function ProjectTeamPage({ params }: { params: { id: string } }) 
   // Filtrar membros da equipe com base na pesquisa
   const filteredMembers = allMembers.filter(member => 
     member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.department.toLowerCase().includes(searchQuery.toLowerCase())
+    member.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   // Verificar se um membro já está na equipe do projeto
@@ -308,31 +297,17 @@ export default function ProjectTeamPage({ params }: { params: { id: string } }) 
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Membro</TableHead>
-                    <TableHead>Função</TableHead>
-                    <TableHead>Departamento</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="w-[80px]">Ações</TableHead>
+                    <TableHead className="w-[80px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {project.team.map((member) => (
                     <TableRow key={member.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarImage src={member.avatar} />
-                            <AvatarFallback>
-                              {member.name.split(" ").map(n => n[0]).join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{member.name}</p>
-                          </div>
-                        </div>
-                      </TableCell>
+                      <TableCell>{member.name}</TableCell>
                       <TableCell>{member.role}</TableCell>
-                      <TableCell>{member.department}</TableCell>
                       <TableCell>
                         <Badge 
                           variant={

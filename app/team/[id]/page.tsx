@@ -31,20 +31,17 @@ export default function TeamMemberPage({ params }: PageProps) {
         const data = await response.json();
         
         // Type guard to validate API response
-        const isValidMember = (data: any): data is TeamMember => {
+        const isValidData = (data: any): data is TeamMember => {
           return (
-            typeof data === 'object' &&
-            data !== null &&
             typeof data.id === 'string' &&
             typeof data.name === 'string' &&
             typeof data.role === 'string' &&
-            typeof data.department === 'string' &&
-            typeof data.email === 'string' &&
-            (['Available', 'Working', 'Busy', 'Absent'] as const).includes(data.status)
+            typeof data.status === 'string' &&
+            (!data.avatar || typeof data.avatar === 'string')
           );
         };
 
-        if (!isValidMember(data)) {
+        if (!isValidData(data)) {
           throw new Error('Invalid member data received from API');
         }
 
@@ -99,58 +96,48 @@ export default function TeamMemberPage({ params }: PageProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold">Name</h3>
+              <p>{member.name}</p>
+            </div>
+            <div>
               <h3 className="font-semibold">Role</h3>
               <p>{member.role}</p>
             </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold">Department</h3>
-              <p>{member.department}</p>
-            </div>
-            <div className="space-y-2">
+            <div>
               <h3 className="font-semibold">Status</h3>
-              <Badge
-                variant={
-                  member.status === "Available"
-                    ? "default"
-                    : member.status === "Working"
-                    ? "secondary"
-                    : "outline"
-                }
-              >
-                {member.status}
-              </Badge>
+              <p>{member.status}</p>
             </div>
-            {member.phone && (
-              <div className="space-y-2">
-                <h3 className="font-semibold">Phone</h3>
-                <p>{member.phone}</p>
+            {member.avatar && (
+              <div>
+                <h3 className="font-semibold">Avatar</h3>
+                <img src={member.avatar} alt={member.name} className="w-20 h-20 rounded-full" />
               </div>
             )}
-            {member.joinDate && (
-              <div className="space-y-2">
-                <h3 className="font-semibold">Join Date</h3>
-                <p>{member.joinDate}</p>
-              </div>
-            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <h3 className="font-semibold">Phone</h3>
+              <p>{member.phone}</p>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold">Join Date</h3>
+              <p>{member.joinDate}</p>
+            </div>
             {member.bankDetails && (
               <div className="space-y-2">
                 <h3 className="font-semibold">Bank Details</h3>
-                <div className="space-y-1">
-                  <p><span className="text-muted-foreground">Account Name:</span> {member.bankDetails.accountName}</p>
-                  <p><span className="text-muted-foreground">Account Number:</span> {member.bankDetails.accountNumber}</p>
-                  <p><span className="text-muted-foreground">Sort Code:</span> {member.bankDetails.sortCode}</p>
-                </div>
+                <p>Account Number: {member.bankDetails.accountNumber}</p>
+                <p>Account Name: {member.bankDetails.accountName}</p>
+                <p>Sort Code: {member.bankDetails.sortCode}</p>
               </div>
             )}
             {member.cscsCard && (
               <div className="space-y-2">
                 <h3 className="font-semibold">CSCS Card</h3>
-                <div className="space-y-1">
-                  <p><span className="text-muted-foreground">Card Number:</span> {member.cscsCard.number}</p>
-                  <p><span className="text-muted-foreground">Expiry Date:</span> {member.cscsCard.expiryDate}</p>
-                </div>
+                <p>Number: {member.cscsCard.number}</p>
+                <p>Expiry Date: {member.cscsCard.expiryDate}</p>
               </div>
             )}
           </div>

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/layout';
-import { TeamMember } from '@/app/types/team';
+import { TeamMember, TeamMemberStatus } from '@/app/types/team';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -92,53 +92,26 @@ export default function TeamMemberPage({ params }: PageProps) {
                   id="name"
                   value={member.name}
                   onChange={(e) => setMember({ ...member, name: e.target.value })}
-                  disabled={!isEditing}
+                  placeholder="Enter member name"
                 />
               </div>
-
               <div className="grid gap-2">
                 <label htmlFor="role">Role</label>
                 <Input
                   id="role"
                   value={member.role}
                   onChange={(e) => setMember({ ...member, role: e.target.value })}
-                  disabled={!isEditing}
+                  placeholder="Enter member role"
                 />
               </div>
-
-              <div className="grid gap-2">
-                <label htmlFor="department">Department</label>
-                <Select
-                  value={member.department}
-                  onValueChange={(value: "Management" | "Engineering" | "Design" | "Marketing" | "Sales") =>
-                    setMember({ ...member, department: value })
-                  }
-                  disabled={!isEditing}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Management">Management</SelectItem>
-                    <SelectItem value="Engineering">Engineering</SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Sales">Sales</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div className="grid gap-2">
                 <label htmlFor="status">Status</label>
                 <Select
                   value={member.status}
-                  onValueChange={(value: "Available" | 'Working' | 'Busy' | 'Absent') =>
-                    setMember({ ...member, status: value })
-                  }
-                  disabled={!isEditing}
+                  onValueChange={(value) => setMember({ ...member, status: value as TeamMemberStatus })}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select a status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Available">Available</SelectItem>
@@ -148,106 +121,12 @@ export default function TeamMemberPage({ params }: PageProps) {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="grid gap-2">
-                <h3 className="font-semibold">Bank Details</h3>
-                <div className="grid gap-2">
-                  <label htmlFor="accountName">Account Name</label>
-                  <Input
-                    id="accountName"
-                    value={member.bankDetails?.accountName || ''}
-                    onChange={(e) => setMember({
-                      ...member,
-                      bankDetails: {
-                        accountName: e.target.value,
-                        accountNumber: member.bankDetails?.accountNumber || '',
-                        sortCode: member.bankDetails?.sortCode || ''
-                      }
-                    })}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <label htmlFor="accountNumber">Account Number</label>
-                  <Input
-                    id="accountNumber"
-                    value={member.bankDetails?.accountNumber || ''}
-                    onChange={(e) => setMember({
-                      ...member,
-                      bankDetails: {
-                        accountName: member.bankDetails?.accountName || '',
-                        accountNumber: e.target.value,
-                        sortCode: member.bankDetails?.sortCode || ''
-                      }
-                    })}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <label htmlFor="sortCode">Sort Code</label>
-                  <Input
-                    id="sortCode"
-                    value={member.bankDetails?.sortCode || ''}
-                    onChange={(e) => setMember({
-                      ...member,
-                      bankDetails: {
-                        accountName: member.bankDetails?.accountName || '',
-                        accountNumber: member.bankDetails?.accountNumber || '',
-                        sortCode: e.target.value
-                      }
-                    })}
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <h3 className="font-semibold">CSCS Card</h3>
-                <div className="grid gap-2">
-                  <label htmlFor="cscsNumber">Card Number</label>
-                  <Input
-                    id="cscsNumber"
-                    value={member.cscsCard?.number || ''}
-                    onChange={(e) => setMember({
-                      ...member,
-                      cscsCard: {
-                        number: e.target.value,
-                        expiryDate: member.cscsCard?.expiryDate || ''
-                      }
-                    })}
-                    disabled={!isEditing}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <label htmlFor="cscsExpiryDate">Expiry Date</label>
-                  <Input
-                    id="cscsExpiryDate"
-                    value={member.cscsCard?.expiryDate || ''}
-                    onChange={(e) => setMember({
-                      ...member,
-                      cscsCard: {
-                        number: member.cscsCard?.number || '',
-                        expiryDate: e.target.value
-                      }
-                    })}
-                    disabled={!isEditing}
-                  />
-                </div>
-              </div>
             </div>
-
-            <div className="flex justify-end space-x-4">
-              {isEditing ? (
-                <>
-                  <Button type="submit" variant="default">Save</Button>
-                  <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
-                </>
-              ) : (
-                <>
-                  <Button type="button" variant="default" onClick={() => setIsEditing(true)}>Edit</Button>
-                  <Button type="button" variant="destructive" onClick={handleDelete}>Delete</Button>
-                </>
-              )}
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => router.back()}>
+                Cancel
+              </Button>
+              <Button type="submit">Save Changes</Button>
             </div>
           </form>
         </CardContent>

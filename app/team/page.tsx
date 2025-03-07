@@ -53,7 +53,8 @@ import {
   Trash2, 
   Mail, 
   Phone, 
-  Filter 
+  Filter,
+  MoreHorizontal
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TeamMember } from "../types/team";
@@ -62,7 +63,6 @@ import Link from "next/link";
 export default function TeamPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterDepartment, setFilterDepartment] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [isEditMemberOpen, setIsEditMemberOpen] = useState(false);
@@ -100,17 +100,12 @@ export default function TeamPage() {
   const filteredMembers = members.filter(member => {
     const matchesSearch = 
       member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         member.email.toLowerCase().includes(searchQuery.toLowerCase());
+      member.role.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesDepartment = !filterDepartment || member.department === filterDepartment;
     const matchesStatus = !filterStatus || member.status === filterStatus;
     
-    return matchesSearch && matchesDepartment && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
-  
-  // Obter departamentos únicos para o filtro
-  const departments = Array.from(new Set(members.map(member => member.department)));
   
   // Função para abrir o diálogo de adicionar membro
   const openAddMemberDialog = () => {
@@ -137,15 +132,23 @@ export default function TeamPage() {
   };
   
   // Função para editar um membro
-  const editMember = () => {
-    // Em um cenário real, você enviaria os dados para uma API
-    // Por enquanto, apenas fechamos o diálogo e mostramos um toast
-    setIsEditMemberOpen(false);
-    
-    toast({
-      title: "Membro atualizado",
-      description: "As informações do membro foram atualizadas com sucesso.",
-    });
+  const handleEdit = (member: TeamMember) => {
+    setCurrentMember(member);
+    setIsEditMemberOpen(true);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (currentMember) {
+      setMembers(members.map(member => 
+        member.id === currentMember.id ? currentMember : member
+      ));
+      setIsEditMemberOpen(false);
+      toast({
+        title: "Member updated",
+        description: "The member has been updated successfully.",
+      });
+    }
   };
   
   // Função para remover um membro
@@ -201,47 +204,28 @@ export default function TeamPage() {
               <div className="flex flex-wrap gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" className="ml-auto">
                       <Filter className="mr-2 h-4 w-4" />
-                      Departamento
+                      Filter
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setFilterDepartment(null)}>
-                      Todos
-                    </DropdownMenuItem>
+                    <DropdownMenuLabel>Filter by status</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {departments.map((department) => (
-                      <DropdownMenuItem 
-                        key={department}
-                        onClick={() => setFilterDepartment(department)}
-                      >
-                        {department}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Filter className="mr-2 h-4 w-4" />
-                      Status
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => setFilterStatus(null)}>
-                      Todos
+                      All Statuses
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setFilterStatus("Active")}>
-                      Ativo
+                    <DropdownMenuItem onClick={() => setFilterStatus("Available")}>
+                      Available
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterStatus("On Leave")}>
-                      De Licença
+                    <DropdownMenuItem onClick={() => setFilterStatus("Working")}>
+                      Working
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setFilterStatus("Unavailable")}>
-                      Indisponível
+                    <DropdownMenuItem onClick={() => setFilterStatus("Busy")}>
+                      Busy
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setFilterStatus("Absent")}>
+                      Absent
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -254,7 +238,6 @@ export default function TeamPage() {
                   <TableRow>
                     <TableHead>Membro</TableHead>
                     <TableHead>Função</TableHead>
-                    <TableHead className="hidden md:table-cell">Departamento</TableHead>
                     <TableHead className="hidden md:table-cell">Status</TableHead>
                     <TableHead className="hidden md:table-cell">Data de Entrada</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
@@ -285,7 +268,6 @@ export default function TeamPage() {
                     </Link>
                         </TableCell>
                         <TableCell>{member.role}</TableCell>
-                        <TableCell className="hidden md:table-cell">{member.department}</TableCell>
                         <TableCell className="hidden md:table-cell">
                           <Badge 
                             variant={
@@ -377,23 +359,6 @@ export default function TeamPage() {
               <Input id="role" className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="department" className="text-right">
-                Departamento
-              </Label>
-              <Select>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione um departamento" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Management">Gestão</SelectItem>
-                  <SelectItem value="Engineering">Engenharia</SelectItem>
-                  <SelectItem value="Design">Design</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
-                  <SelectItem value="Sales">Vendas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="status" className="text-right">
                 Status
               </Label>
@@ -402,9 +367,10 @@ export default function TeamPage() {
                   <SelectValue placeholder="Selecione um status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Ativo</SelectItem>
-                  <SelectItem value="On Leave">De Licença</SelectItem>
-                  <SelectItem value="Unavailable">Indisponível</SelectItem>
+                  <SelectItem value="Available">Available</SelectItem>
+                  <SelectItem value="Working">Working</SelectItem>
+                  <SelectItem value="Busy">Busy</SelectItem>
+                  <SelectItem value="Absent">Absent</SelectItem>
                 </SelectContent>
               </Select>
                   </div>
@@ -454,23 +420,6 @@ export default function TeamPage() {
                 <Input id="edit-role" defaultValue={currentMember.role} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-department" className="text-right">
-                  Departamento
-                </Label>
-                <Select defaultValue={currentMember.department}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Management">Gestão</SelectItem>
-                    <SelectItem value="Engineering">Engenharia</SelectItem>
-                    <SelectItem value="Design">Design</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Sales">Vendas</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-status" className="text-right">
                   Status
                 </Label>
@@ -479,9 +428,10 @@ export default function TeamPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Active">Ativo</SelectItem>
-                    <SelectItem value="On Leave">De Licença</SelectItem>
-                    <SelectItem value="Unavailable">Indisponível</SelectItem>
+                    <SelectItem value="Available">Available</SelectItem>
+                    <SelectItem value="Working">Working</SelectItem>
+                    <SelectItem value="Busy">Busy</SelectItem>
+                    <SelectItem value="Absent">Absent</SelectItem>
                   </SelectContent>
                 </Select>
                 </div>
@@ -491,7 +441,7 @@ export default function TeamPage() {
             <Button variant="outline" onClick={() => setIsEditMemberOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={editMember}>Salvar Alterações</Button>
+            <Button onClick={handleEditSubmit}>Salvar Alterações</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

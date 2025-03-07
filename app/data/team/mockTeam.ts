@@ -1,172 +1,163 @@
-import { TeamMember, TeamMemberStatus, Department } from "@/app/types/team";
+import { TeamMember, TeamMemberStatus } from "@/app/types/team";
 
 export const mockTeamMembers: TeamMember[] = [
   {
     id: "1",
-    name: "Joao Doria",
+    name: "John Smith",
     role: "Project Manager",
-    email: "john.doe@company.com",
-    phone: "+1 (555) 123-4567",
-    department: "Management",
-    status: "Busy",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60",
-    joinDate: "2022-01-15",
-    bankDetails: {
-      accountName: "Joao Doria",
-      accountNumber: "12345678",
-      sortCode: "10-20-30"
-    },
+    email: "john.smith@example.com",
+    phone: "+44 20 7123 4567",
+    status: "Available",
     cscsCard: {
-      number: "ABC123456",
+      number: "CSCS123456",
       expiryDate: "2025-12-31"
-    }
+    },
+    bankDetails: {
+      accountNumber: "12345678",
+      accountName: "John Smith",
+      sortCode: "12-34-56"
+    },
+    avatar: "/avatars/john-smith.jpg",
+    joinDate: "2023-01-15"
   },
   {
     id: "2",
-    name: "Dona Maria",
-    role: "UI/UX Designer",
-    email: "sarah.johnson@company.com",
-    phone: "+1 (555) 234-5678",
-    department: "Design",
+    name: "Sarah Johnson",
+    role: "UI Designer",
+    email: "sarah.j@example.com",
+    phone: "+44 20 7123 4568",
     status: "Working",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60",
-    joinDate: "2022-03-01",
-    bankDetails: {
-      accountName: "Dona Maria Silva",
-      accountNumber: "87654321",
-      sortCode: "20-30-40"
-    },
     cscsCard: {
-      number: "XYZ789012",
-      expiryDate: "2024-10-15"
-    }
+      number: "CSCS123457",
+      expiryDate: "2025-12-31"
+    },
+    bankDetails: {
+      accountNumber: "87654321",
+      accountName: "Sarah Johnson",
+      sortCode: "65-43-21"
+    },
+    avatar: "/avatars/sarah-johnson.jpg",
+    joinDate: "2023-02-20"
   },
   {
     id: "3",
-    name: "David Kim",
-    role: "Full Stack Developer",
-    email: "david.kim@company.com",
-    phone: "+1 (555) 345-6789",
-    department: "Engineering",
+    name: "Michael Brown",
+    role: "Senior Developer",
+    email: "michael.b@example.com",
+    phone: "+44 20 7123 4569",
     status: "Busy",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60",
-    joinDate: "2022-02-15",
-    bankDetails: {
-      accountName: "David Kim",
-      accountNumber: "23456789",
-      sortCode: "30-40-50"
-    },
     cscsCard: {
-      number: "DEF345678",
-      expiryDate: "2026-06-30"
-    }
+      number: "CSCS123458",
+      expiryDate: "2025-12-31"
+    },
+    bankDetails: {
+      accountNumber: "11223344",
+      accountName: "Michael Brown",
+      sortCode: "11-22-33"
+    },
+    avatar: "/avatars/michael-brown.jpg",
+    joinDate: "2023-03-10"
   },
   {
     id: "4",
-    name: "Maria Garcia",
-    role: "Backend Developer",
-    email: "maria.garcia@company.com",
-    phone: "+1 (555) 456-7890",
-    department: "Engineering",
+    name: "Emma Wilson",
+    role: "Frontend Developer",
+    email: "emma.w@example.com",
+    phone: "+44 20 7123 4570",
     status: "Available",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=60",
-    joinDate: "2022-04-01",
-    bankDetails: {
-      accountName: "Maria Garcia",
-      accountNumber: "34567890",
-      sortCode: "40-50-60"
-    },
     cscsCard: {
-      number: "GHI456789",
-      expiryDate: "2025-08-31"
-    }
+      number: "CSCS123459",
+      expiryDate: "2025-12-31"
+    },
+    bankDetails: {
+      accountNumber: "44332211",
+      accountName: "Emma Wilson",
+      sortCode: "44-33-22"
+    },
+    avatar: "/avatars/emma-wilson.jpg",
+    joinDate: "2023-04-05"
   },
   {
     id: "5",
-    name: "Ana Silva",
-    role: "Marketing Specialist",
-    email: "ana.silva@company.com",
-    phone: "+1 (555) 567-8901",
-    department: "Marketing",
-    status: "Available",
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=60",
-    joinDate: "2022-06-15",
+    name: "David Lee",
+    role: "Marketing Manager",
+    email: "david.l@example.com",
+    phone: "+44 20 7123 4571",
+    status: "Working",
+    cscsCard: {
+      number: "CSCS123460",
+      expiryDate: "2025-12-31"
+    },
     bankDetails: {
-      accountName: "Ana Silva",
-      accountNumber: "45678901",
-      sortCode: "50-60-70"
-    }
+      accountNumber: "55667788",
+      accountName: "David Lee",
+      sortCode: "55-66-77"
+    },
+    avatar: "/avatars/david-lee.jpg",
+    joinDate: "2023-05-15"
   },
   {
     id: "6",
-    name: "Michael Johnson",
-    role: "Frontend Developer",
-    email: "michael.johnson@company.com",
-    phone: "+1 (555) 678-9012",
-    department: "Engineering",
+    name: "Lisa Chen",
+    role: "Backend Developer",
+    email: "lisa.c@example.com",
+    phone: "+44 20 7123 4572",
     status: "Available",
-    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&auto=format&fit=crop&q=60",
-    joinDate: "2022-05-01",
-    bankDetails: {
-      accountName: "Michael Johnson",
-      accountNumber: "56789012",
-      sortCode: "60-70-80"
-    },
     cscsCard: {
-      number: "JKL567890",
-      expiryDate: "2024-12-31"
-    }
+      number: "CSCS123461",
+      expiryDate: "2025-12-31"
+    },
+    bankDetails: {
+      accountNumber: "99887766",
+      accountName: "Lisa Chen",
+      sortCode: "99-88-77"
+    },
+    avatar: "/avatars/lisa-chen.jpg",
+    joinDate: "2023-06-20"
   },
   {
     id: "7",
-    name: "Emily Chen",
-    role: "QA Engineer",
-    email: "emily.chen@company.com",
-    phone: "+1 (555) 789-0123",
-    department: "Engineering",
+    name: "James Wilson",
+    role: "Full Stack Developer",
+    email: "james.w@example.com",
+    phone: "+44 20 7123 4573",
     status: "Busy",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=60",
-    joinDate: "2022-07-15",
-    bankDetails: {
-      accountName: "Emily Chen",
-      accountNumber: "67890123",
-      sortCode: "70-80-90"
-    },
     cscsCard: {
-      number: "MNO678901",
-      expiryDate: "2025-03-31"
-    }
+      number: "CSCS123462",
+      expiryDate: "2025-12-31"
+    },
+    bankDetails: {
+      accountNumber: "11223344",
+      accountName: "James Wilson",
+      sortCode: "11-22-33"
+    },
+    avatar: "/avatars/james-wilson.jpg",
+    joinDate: "2023-07-10"
   },
   {
     id: "8",
-    name: "Robert Wilson",
-    role: "Product Manager",
-    email: "robert.wilson@company.com",
-    phone: "+1 (555) 890-1234",
-    department: "Management",
+    name: "Sophie Taylor",
+    role: "Project Manager",
+    email: "sophie.t@example.com",
+    phone: "+44 20 7123 4574",
     status: "Available",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=60",
-    joinDate: "2022-08-01",
-    bankDetails: {
-      accountName: "Robert Wilson",
-      accountNumber: "78901234",
-      sortCode: "80-90-10"
-    },
     cscsCard: {
-      number: "PQR789012",
-      expiryDate: "2026-01-31"
-    }
+      number: "CSCS123463",
+      expiryDate: "2025-12-31"
+    },
+    bankDetails: {
+      accountNumber: "44332211",
+      accountName: "Sophie Taylor",
+      sortCode: "44-33-22"
+    },
+    avatar: "/avatars/sophie-taylor.jpg",
+    joinDate: "2023-08-15"
   }
 ];
 
 // Helper function to get a team member by ID
 export function getTeamMemberById(id: string): TeamMember | undefined {
   return mockTeamMembers.find(member => member.id === id);
-}
-
-// Helper function to get team members by department
-export function getTeamMembersByDepartment(department: Department): TeamMember[] {
-  return mockTeamMembers.filter(member => member.department === department);
 }
 
 // Helper function to get team members by status

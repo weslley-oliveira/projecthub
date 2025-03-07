@@ -30,6 +30,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TeamMember } from "@/app/types/team";
 
 // This function is required for static site generation with dynamic routes
 export function generateStaticParams() {
@@ -41,34 +42,37 @@ export function generateStaticParams() {
 
 export default function ProjectDetailPage({ params }: { params: { id: string } }) {
   // Mock team members data
-  const teamMembers = [
+  const mockTeamMembers: TeamMember[] = [
     {
       id: "1",
       name: "John Doe",
       role: "Project Manager",
       email: "john.doe@example.com",
+      phone: "+44 20 7123 4567",
       avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60",
-      department: "Management",
-      status: "Active" as const,
+      status: "Available",
+      joinDate: "2023-01-15"
     },
     {
       id: "2",
       name: "Sarah Johnson",
       role: "UI/UX Designer",
-      email: "sarah.johnson@example.com",
+      email: "sarah.j@example.com",
+      phone: "+44 20 7123 4568",
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60",
-      department: "Design",
-      status: "Active" as const,
+      status: "Working",
+      joinDate: "2023-02-20"
     },
     {
       id: "3",
       name: "David Kim",
       role: "Full Stack Developer",
-      email: "david.kim@example.com",
+      email: "david.k@example.com",
+      phone: "+44 20 7123 4569",
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60",
-      department: "Engineering",
-      status: "Active" as const,
-    },
+      status: "Busy",
+      joinDate: "2023-03-10"
+    }
   ];
   
   // Mock tasks data
@@ -78,7 +82,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
       title: "Design homepage wireframes",
       description: "Create wireframes for the new homepage layout",
       status: "Completed" as const,
-      assignee: teamMembers[1],
+      assignee: mockTeamMembers[1],
       dueDate: format(addDays(new Date(), -5), 'MMM d, yyyy'),
       priority: "High" as const,
     },
@@ -87,7 +91,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
       title: "Implement user authentication",
       description: "Set up user authentication system with JWT",
       status: "In Progress" as const,
-      assignee: teamMembers[2],
+      assignee: mockTeamMembers[2],
       dueDate: format(addDays(new Date(), 2), 'MMM d, yyyy'),
       priority: "High" as const,
     },
@@ -96,7 +100,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
       title: "Create responsive navigation",
       description: "Implement responsive navigation menu for all devices",
       status: "In Progress" as const,
-      assignee: teamMembers[1],
+      assignee: mockTeamMembers[1],
       dueDate: format(addDays(new Date(), 3), 'MMM d, yyyy'),
       priority: "Medium" as const,
     },
@@ -105,7 +109,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
       title: "Set up CI/CD pipeline",
       description: "Configure continuous integration and deployment pipeline",
       status: "Pending" as const,
-      assignee: teamMembers[2],
+      assignee: mockTeamMembers[2],
       dueDate: format(addDays(new Date(), 7), 'MMM d, yyyy'),
       priority: "Medium" as const,
     },
@@ -114,7 +118,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
       title: "Conduct user testing",
       description: "Organize and conduct user testing sessions",
       status: "Pending" as const,
-      assignee: teamMembers[0],
+      assignee: mockTeamMembers[0],
       dueDate: format(addDays(new Date(), 10), 'MMM d, yyyy'),
       priority: "Low" as const,
     },
@@ -163,19 +167,19 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   const comments = [
     {
       id: "1",
-      user: teamMembers[0],
+      user: mockTeamMembers[0],
       text: "Let's make sure we prioritize the responsive design for mobile users.",
       timestamp: "2 days ago",
     },
     {
       id: "2",
-      user: teamMembers[1],
+      user: mockTeamMembers[1],
       text: "I've uploaded the latest design mockups to the shared folder. Please review when you get a chance.",
       timestamp: "1 day ago",
     },
     {
       id: "3",
-      user: teamMembers[2],
+      user: mockTeamMembers[2],
       text: "We might need to reconsider the authentication flow. The current implementation is causing some UX issues.",
       timestamp: "5 hours ago",
     },
@@ -220,7 +224,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     dueDate: format(addDays(new Date(), 30), 'MMMM d, yyyy'),
     client: "Acme Corporation",
     budget: 25000,
-    team: teamMembers,
+    team: mockTeamMembers,
     tasks: tasks,
     milestones: milestones,
     comments: comments,
@@ -437,7 +441,6 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                           <Badge variant="outline">{member.status}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{member.role}</p>
-                        <p className="text-sm">{member.email}</p>
                       </div>
                     </div>
                   ))}

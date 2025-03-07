@@ -1,11 +1,8 @@
+import { Address, Rate } from './common';
+
 // Team member status type
 export type TeamMemberStatus =  "Available" | 'Working' | 'Busy' | 'Absent';
 
-export interface Rate {
-  weekdays: { [key: string]: number };
-  saturday: { [key: string]: number };
-  sunday: { [key: string]: number };
-}
 // Base team member interface with common properties
 export interface TeamMember {
   id: string;
@@ -13,7 +10,6 @@ export interface TeamMember {
   role: string;
   email: string;
   phone: string;
-  department: string;
   status: TeamMemberStatus;
   cscsCard?: {
     number: string;
@@ -27,14 +23,7 @@ export interface TeamMember {
   avatar?: string;
   rate?: Rate;
   joinDate: string;
-  address?: {
-    street: string;
-    number: string;
-    complement?: string;
-    city: string;
-    postcode: string;
-    country: string;
-  };
+  address?: Address;
 }
 
 // Simplified team member interface for project cards and lists
