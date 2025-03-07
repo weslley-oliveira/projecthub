@@ -1,4 +1,5 @@
 import { TeamMember, TeamMemberStatus } from "@/app/types/team";
+import { Project } from "@/app/types/project";
 
 export const mockTeamMembers: TeamMember[] = [
   {
@@ -64,7 +65,7 @@ export const mockTeamMembers: TeamMember[] = [
     role: "Frontend Developer",
     email: "emma.w@example.com",
     phone: "+44 20 7123 4570",
-    status: "Available",
+    status: "Absent",
     cscsCard: {
       number: "CSCS123459",
       expiryDate: "2025-12-31"
@@ -83,7 +84,7 @@ export const mockTeamMembers: TeamMember[] = [
     role: "Marketing Manager",
     email: "david.l@example.com",
     phone: "+44 20 7123 4571",
-    status: "Working",
+    status: "Available",
     cscsCard: {
       number: "CSCS123460",
       expiryDate: "2025-12-31"
@@ -102,7 +103,7 @@ export const mockTeamMembers: TeamMember[] = [
     role: "Backend Developer",
     email: "lisa.c@example.com",
     phone: "+44 20 7123 4572",
-    status: "Available",
+    status: "Working",
     cscsCard: {
       number: "CSCS123461",
       expiryDate: "2025-12-31"
@@ -163,4 +164,20 @@ export function getTeamMemberById(id: string): TeamMember | undefined {
 // Helper function to get team members by status
 export function getTeamMembersByStatus(status: TeamMemberStatus): TeamMember[] {
   return mockTeamMembers.filter(member => member.status === status);
+}
+
+// Helper function to get project team members
+export function getProjectTeamMembers(projectId: string): Project["team"] {
+  // Em um ambiente real, isso seria filtrado por projeto
+  // Por enquanto, retornamos os primeiros 3 membros como exemplo
+  return mockTeamMembers.slice(0, 3).map(member => ({
+    id: member.id,
+    name: member.name,
+    role: member.role,
+    status: member.status === "Available" ? "Active" :
+            member.status === "Working" ? "Active" :
+            member.status === "Busy" ? "Active" :
+            "Unavailable",
+    avatar: member.avatar
+  }));
 }

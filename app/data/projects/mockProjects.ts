@@ -5,10 +5,9 @@ export const mockProjects: Project[] = [
   {
     id: "1",
     title: "Website Redesign",
-    description: "Redesign completo do website da empresa, incluindo nova interface e funcionalidades modernas",
-    progress: 75,
-    dueDate: "2024-04-15",
+    description: "Redesigning the company website with modern UI/UX principles",
     status: "In Progress",
+    dueDate: "2024-10-15",
     team: [
       {
         id: "1",
@@ -49,10 +48,9 @@ export const mockProjects: Project[] = [
   {
     id: "2",
     title: "Mobile App Development",
-    description: "Desenvolvimento de um aplicativo móvel para gerenciamento de projetos",
-    progress: 30,
-    dueDate: "2024-05-20",
-    status: "Confirmed",
+    description: "Developing a new mobile app for iOS and Android",
+    status: "Pending",
+    dueDate: "2024-11-30",
     team: [
       {
         id: "3",
@@ -93,10 +91,9 @@ export const mockProjects: Project[] = [
   {
     id: "3",
     title: "Marketing Campaign",
-    description: "Campanha de marketing digital para lançamento do novo produto",
-    progress: 100,
-    dueDate: "2024-03-30",
-    status: "Completed",
+    description: "Launching a new marketing campaign for Q4",
+    status: "Pending",
+    dueDate: "2024-12-10",
     team: [
       {
         id: "5",
@@ -129,10 +126,9 @@ export const mockProjects: Project[] = [
   {
     id: "4",
     title: "Database Migration",
-    description: "Migração do banco de dados para uma nova versão com melhor performance",
-    progress: 0,
-    dueDate: "2024-06-10",
-    status: "Pending",
+    description: "Migrating legacy database to new cloud infrastructure",
+    status: "Completed",
+    dueDate: "2024-09-28",
     team: [],
     address: {
       street: "101 Data Center",
@@ -153,11 +149,10 @@ export const mockProjects: Project[] = [
   },
   {
     id: "5",
-    title: "Security Audit",
-    description: "Auditoria completa de segurança do sistema",
-    progress: 45,
-    dueDate: "2024-04-30",
+    title: "CRM Integration",
+    description: "Integrating new CRM system with existing tools",
     status: "In Progress",
+    dueDate: "2024-10-05",
     team: [
       {
         id: "6",

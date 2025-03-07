@@ -25,9 +25,8 @@ export function ProjectCard({
   id,
   title,
   description,
-  progress,
-  dueDate,
   status,
+  dueDate,
   team,
   startTime = "08:00", // Default start time if not provided
   finishedTime,

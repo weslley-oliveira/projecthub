@@ -30,11 +30,24 @@ export interface WorkforceType {
   quantity: number;
 }
 
+export interface ProjectResources {
+  documents: {
+    name: string;
+    url: string;
+    type: "PDF" | "DOC" | "XLS" | "LINK";
+    uploadDate: string;
+  }[];
+  links: {
+    title: string;
+    url: string;
+    description?: string;
+  }[];
+}
+
 export interface Project {
   id: string;
   title: string;
   description: string;
-  progress: number;
   dueDate: string;
   status: "Pending" | "Confirmed" | "In Progress" | "Completed" | "Canceled";
   team: TeamMember[];
@@ -43,4 +56,5 @@ export interface Project {
   address?: Address;
   contact?: Contact;
   workforce?: WorkforceType[];
+  resources?: ProjectResources;
 } 
