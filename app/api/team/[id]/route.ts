@@ -1,31 +1,38 @@
 import { NextResponse } from 'next/server';
-import { getTeamMemberById } from '@/app/data/team/mockTeam';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const member = getTeamMemberById(params.id);
+    const { data, error } = await supabase
+      .from('team_members')
+      .select('*')
+      .eq('id', params.id)
+      .single();
 
-    if (!member) {
-      return new NextResponse(JSON.stringify({ error: 'Team member not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (error) {
+      console.error('Supabase error:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch team member', details: error.message },
+        { status: 500 }
+      );
     }
 
-    return new NextResponse(JSON.stringify(member), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    if (!data) {
+      return NextResponse.json(
+        { error: 'Team member not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(data);
   } catch (error) {
-    return new NextResponse(
-      JSON.stringify({ error: 'Internal server error' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
+    console.error('Server error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch team member', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
     );
   }
 }

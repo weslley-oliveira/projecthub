@@ -58,7 +58,7 @@ import {
   Eye
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { TeamMember } from "../types/team";
+import { TeamMember, TeamMemberStatus } from "../types/team";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -123,13 +123,46 @@ export default function TeamPage() {
   };
   
   // Função para adicionar um novo membro
-  const addMember = () => {
-    setIsAddMemberOpen(false);
+  const addMember = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     
-    toast({
-      title: "Member added",
-      description: "The new member has been added successfully.",
-    });
+    const memberData = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      role: formData.get('role') as string,
+      status: formData.get('status') as "Available" | "Working" | "Busy" | "Absent",
+    };
+
+    try {
+      const response = await fetch('/api/team', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(memberData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add member');
+      }
+
+      const newMember = await response.json();
+      setMembers([...members, newMember]);
+      setIsAddMemberOpen(false);
+      
+      toast({
+        title: "Member added",
+        description: "The new member has been added successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add team member",
+        variant: "destructive",
+      });
+    }
   };
   
   // Função para editar um membro
@@ -138,28 +171,77 @@ export default function TeamPage() {
     setIsEditMemberOpen(true);
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (currentMember) {
+    if (!currentMember) return;
+
+    const formData = new FormData(e.currentTarget);
+    
+    const updateData = {
+      id: currentMember.id,
+      name: formData.get('edit-name') as string,
+      email: formData.get('edit-email') as string,
+      phone: formData.get('edit-phone') as string,
+      role: formData.get('edit-role') as string,
+      status: formData.get('edit-status') as "Available" | "Working" | "Busy" | "Absent",
+    };
+
+    try {
+      const response = await fetch('/api/team', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update member');
+      }
+
+      const updatedMember = await response.json();
       setMembers(members.map(member => 
-        member.id === currentMember.id ? currentMember : member
+        member.id === updatedMember.id ? updatedMember : member
       ));
       setIsEditMemberOpen(false);
+      
       toast({
         title: "Member updated",
         description: "The member has been updated successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update team member",
+        variant: "destructive",
       });
     }
   };
   
   // Função para remover um membro
-  const removeMember = (id: string) => {
-    setMembers(members.filter(member => member.id !== id));
-    
-    toast({
-      title: "Member removed",
-      description: "The member has been removed successfully.",
-    });
+  const removeMember = async (id: string) => {
+    try {
+      const response = await fetch(`/api/team?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove member');
+      }
+
+      setMembers(members.filter(member => member.id !== id));
+      
+      toast({
+        title: "Member removed",
+        description: "The member has been removed successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove team member",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -336,54 +418,56 @@ export default function TeamPage() {
               Fill in the information to add a new team member.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input id="name" className="col-span-3" />
+          <form onSubmit={addMember}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input id="name" name="name" required className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input id="email" name="email" type="email" required className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-right">
+                  Phone
+                </Label>
+                <Input id="phone" name="phone" required className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="role" className="text-right">
+                  Role
+                </Label>
+                <Input id="role" name="role" required className="col-span-3" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">
+                  Status
+                </Label>
+                <Select name="status" required>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Available">Available</SelectItem>
+                    <SelectItem value="Working">Working</SelectItem>
+                    <SelectItem value="Busy">Busy</SelectItem>
+                    <SelectItem value="Absent">Absent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
-              <Input id="email" type="email" className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-right">
-                Phone
-              </Label>
-              <Input id="phone" className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="role" className="text-right">
-                Role
-              </Label>
-              <Input id="role" className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Status
-              </Label>
-              <Select>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select a status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Available">Available</SelectItem>
-                  <SelectItem value="Working">Working</SelectItem>
-                  <SelectItem value="Busy">Busy</SelectItem>
-                  <SelectItem value="Absent">Absent</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddMemberOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={addMember}>Add</Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsAddMemberOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Add</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
       
@@ -397,55 +481,57 @@ export default function TeamPage() {
             </DialogDescription>
           </DialogHeader>
           {currentMember && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-name" className="text-right">
-                  Name
-                </Label>
-                <Input id="edit-name" defaultValue={currentMember.name} className="col-span-3" />
+            <form onSubmit={handleEditSubmit}>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-name" className="text-right">
+                    Name
+                  </Label>
+                  <Input id="edit-name" name="edit-name" defaultValue={currentMember.name} required className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-email" className="text-right">
+                    Email
+                  </Label>
+                  <Input id="edit-email" name="edit-email" type="email" defaultValue={currentMember.email} required className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-phone" className="text-right">
+                    Phone
+                  </Label>
+                  <Input id="edit-phone" name="edit-phone" defaultValue={currentMember.phone} required className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-role" className="text-right">
+                    Role
+                  </Label>
+                  <Input id="edit-role" name="edit-role" defaultValue={currentMember.role} required className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-status" className="text-right">
+                    Status
+                  </Label>
+                  <Select name="edit-status" defaultValue={currentMember.status} required>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Available">Available</SelectItem>
+                      <SelectItem value="Working">Working</SelectItem>
+                      <SelectItem value="Busy">Busy</SelectItem>
+                      <SelectItem value="Absent">Absent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-email" className="text-right">
-                  Email
-                </Label>
-                <Input id="edit-email" type="email" defaultValue={currentMember.email} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-phone" className="text-right">
-                  Phone
-                </Label>
-                <Input id="edit-phone" defaultValue={currentMember.phone} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-role" className="text-right">
-                  Role
-                </Label>
-                <Input id="edit-role" defaultValue={currentMember.role} className="col-span-3" />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-status" className="text-right">
-                  Status
-                </Label>
-                <Select defaultValue={currentMember.status}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Available">Available</SelectItem>
-                    <SelectItem value="Working">Working</SelectItem>
-                    <SelectItem value="Busy">Busy</SelectItem>
-                    <SelectItem value="Absent">Absent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsEditMemberOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditMemberOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEditSubmit}>Save Changes</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
