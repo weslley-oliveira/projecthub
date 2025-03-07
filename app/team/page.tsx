@@ -54,14 +54,17 @@ import {
   Mail, 
   Phone, 
   Filter,
-  MoreHorizontal
+  MoreHorizontal,
+  Eye
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TeamMember } from "../types/team";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function TeamPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
@@ -121,13 +124,11 @@ export default function TeamPage() {
   
   // Função para adicionar um novo membro
   const addMember = () => {
-    // Em um cenário real, você enviaria os dados para uma API
-    // Por enquanto, apenas fechamos o diálogo e mostramos um toast
     setIsAddMemberOpen(false);
     
     toast({
-      title: "Membro adicionado",
-      description: "O novo membro foi adicionado com sucesso.",
+      title: "Member added",
+      description: "The new member has been added successfully.",
     });
   };
   
@@ -153,13 +154,11 @@ export default function TeamPage() {
   
   // Função para remover um membro
   const removeMember = (id: string) => {
-    // Em um cenário real, você enviaria uma solicitação para uma API
-    // Por enquanto, apenas atualizamos o estado local
     setMembers(members.filter(member => member.id !== id));
     
     toast({
-      title: "Membro removido",
-      description: "O membro foi removido com sucesso.",
+      title: "Member removed",
+      description: "The member has been removed successfully.",
     });
   };
 
@@ -168,38 +167,38 @@ export default function TeamPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Equipe</h1>
+            <h1 className="text-3xl font-bold">Team</h1>
             <p className="text-muted-foreground">
-              Gerencie os membros da sua equipe e suas funções
+              Manage your team members and their roles
             </p>
           </div>
           <Button asChild>
             <Link href="/team/new">
               <Plus className="mr-2 h-4 w-4" />
-              Adicionar Membro
+              Add Member
             </Link>
           </Button>
         </div>
         
         <Card>
           <CardHeader>
-            <CardTitle>Membros da Equipe</CardTitle>
+            <CardTitle>Team Members</CardTitle>
             <CardDescription>
-              Visualize e gerencie todos os membros da sua equipe.
+              View and manage all your team members.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="relative w-full sm:w-96">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-                  placeholder="Buscar membros..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search members..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
               
               <div className="flex flex-wrap gap-2">
                 <DropdownMenu>
@@ -229,43 +228,43 @@ export default function TeamPage() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                    </div>
+              </div>
             </div>
             
             <div className="mt-6 rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Membro</TableHead>
-                    <TableHead>Função</TableHead>
+                    <TableHead>Member</TableHead>
+                    <TableHead>Role</TableHead>
                     <TableHead className="hidden md:table-cell">Status</TableHead>
-                    <TableHead className="hidden md:table-cell">Data de Entrada</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    <TableHead className="hidden md:table-cell">Join Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredMembers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-24 text-center">
-                        Nenhum membro encontrado.
+                        No members found.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredMembers.map((member) => (
                       <TableRow key={member.id}>
                         <TableCell>
-                    <Link href={`/team/${member.id}`} className="flex items-center gap-3 hover:bg-muted/50 rounded-md p-1 transition-colors">
-                      <Avatar>
-                        <AvatarImage src={member.avatar} />
-                        <AvatarFallback>
-                          {member.name.split(" ").map(n => n[0]).join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{member.name}</p>
-                        <p className="text-sm text-muted-foreground">{member.email}</p>
-                      </div>
-                    </Link>
+                          <div className="flex items-center gap-3">
+                            <Avatar>
+                              <AvatarImage src={member.avatar} />
+                              <AvatarFallback>
+                                {member.name.split(" ").map(n => n[0]).join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{member.name}</p>
+                              <p className="text-sm text-muted-foreground">{member.email}</p>
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell>{member.role}</TableCell>
                         <TableCell className="hidden md:table-cell">
@@ -278,30 +277,34 @@ export default function TeamPage() {
                                   : "outline"
                             }
                           >
-                      {member.status}
-                    </Badge>
+                            {member.status}
+                          </Badge>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">{member.joinDate}</TableCell>
                         <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => router.push(`/team/${member.id}`)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => openEditMemberDialog(member)}>
                                 <Edit className="mr-2 h-4 w-4" />
-                                Editar
+                                Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <Mail className="mr-2 h-4 w-4" />
-                                Enviar Email
+                                Send Email
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <Phone className="mr-2 h-4 w-4" />
-                                Ligar
+                                Call
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
@@ -309,10 +312,10 @@ export default function TeamPage() {
                                 onClick={() => removeMember(member.id)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Remover
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                                Remove
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))
@@ -324,19 +327,19 @@ export default function TeamPage() {
         </Card>
       </div>
       
-      {/* Diálogo para adicionar membro */}
+      {/* Add Member Dialog */}
       <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Adicionar Novo Membro</DialogTitle>
+            <DialogTitle>Add New Member</DialogTitle>
             <DialogDescription>
-              Preencha as informações para adicionar um novo membro à equipe.
+              Fill in the information to add a new team member.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Nome
+                Name
               </Label>
               <Input id="name" className="col-span-3" />
             </div>
@@ -348,13 +351,13 @@ export default function TeamPage() {
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="phone" className="text-right">
-                Telefone
+                Phone
               </Label>
               <Input id="phone" className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">
-                Função
+                Role
               </Label>
               <Input id="role" className="col-span-3" />
             </div>
@@ -364,7 +367,7 @@ export default function TeamPage() {
               </Label>
               <Select>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecione um status" />
+                  <SelectValue placeholder="Select a status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Available">Available</SelectItem>
@@ -373,31 +376,31 @@ export default function TeamPage() {
                   <SelectItem value="Absent">Absent</SelectItem>
                 </SelectContent>
               </Select>
-                  </div>
-                </div>
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddMemberOpen(false)}>
-              Cancelar
+              Cancel
             </Button>
-            <Button onClick={addMember}>Adicionar</Button>
+            <Button onClick={addMember}>Add</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
-      {/* Diálogo para editar membro */}
+      {/* Edit Member Dialog */}
       <Dialog open={isEditMemberOpen} onOpenChange={setIsEditMemberOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Editar Membro</DialogTitle>
+            <DialogTitle>Edit Member</DialogTitle>
             <DialogDescription>
-              Atualize as informações do membro da equipe.
+              Update the team member information.
             </DialogDescription>
           </DialogHeader>
           {currentMember && (
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-name" className="text-right">
-                  Nome
+                  Name
                 </Label>
                 <Input id="edit-name" defaultValue={currentMember.name} className="col-span-3" />
               </div>
@@ -409,13 +412,13 @@ export default function TeamPage() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-phone" className="text-right">
-                  Telefone
+                  Phone
                 </Label>
                 <Input id="edit-phone" defaultValue={currentMember.phone} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-role" className="text-right">
-                  Função
+                  Role
                 </Label>
                 <Input id="edit-role" defaultValue={currentMember.role} className="col-span-3" />
               </div>
@@ -434,14 +437,14 @@ export default function TeamPage() {
                     <SelectItem value="Absent">Absent</SelectItem>
                   </SelectContent>
                 </Select>
-                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditMemberOpen(false)}>
-              Cancelar
+              Cancel
             </Button>
-            <Button onClick={handleEditSubmit}>Salvar Alterações</Button>
+            <Button onClick={handleEditSubmit}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
