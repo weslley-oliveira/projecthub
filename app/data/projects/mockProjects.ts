@@ -1,124 +1,197 @@
-import { ProjectTeam } from "@/app/types/team";
+import { Project } from "@/app/types/project";
 
 // Mock data for projects
-export const mockProjects: ProjectTeam[] = [
+export const mockProjects: Project[] = [
   {
     id: "1",
     title: "Website Redesign",
+    description: "Redesign completo do website da empresa, incluindo nova interface e funcionalidades modernas",
+    progress: 75,
+    dueDate: "2024-04-15",
+    status: "In Progress",
     team: [
       {
         id: "1",
         name: "John Smith",
         role: "Project Manager",
-        email: "john.smith@example.com",
-        phone: "+44 20 7123 4567",
-        status: "Available",
-        cscsCard: {
-          number: "CSCS123456",
-          expiryDate: "2025-12-31"
-        },
-        bankDetails: {
-          accountNumber: "12345678",
-          accountName: "John Smith",
-          sortCode: "12-34-56"
-        },
+        status: "Active",
         avatar: "/avatars/john-smith.jpg",
-        joinDate: "2023-01-15"
+        finishedTime: "17:00"
       },
       {
         id: "2",
         name: "Sarah Johnson",
         role: "UI Designer",
-        email: "sarah.j@example.com",
-        phone: "+44 20 7123 4568",
-        status: "Working",
-        cscsCard: {
-          number: "CSCS123457",
-          expiryDate: "2025-12-31"
-        },
-        bankDetails: {
-          accountNumber: "87654321",
-          accountName: "Sarah Johnson",
-          sortCode: "65-43-21"
-        },
+        status: "Active",
         avatar: "/avatars/sarah-johnson.jpg",
-        joinDate: "2023-02-20"
+        finishedTime: "17:00"
       }
+    ],
+    startTime: "09:00",
+    address: {
+      street: "123 Tech Avenue",
+      number: "100",
+      city: "San Francisco",
+      postcode: "94105",
+      country: "USA"
+    },
+    contact: {
+      name: "John Smith",
+      phone: "+44 20 7123 4567",
+      email: "john.smith@example.com"
+    },
+    workforce: [
+      { type: "Fitter", quantity: 2 },
+      { type: "Porter", quantity: 1 },
+      { type: "Supervisor", quantity: 1 }
     ]
   },
   {
     id: "2",
     title: "Mobile App Development",
+    description: "Desenvolvimento de um aplicativo móvel para gerenciamento de projetos",
+    progress: 30,
+    dueDate: "2024-05-20",
+    status: "Confirmed",
     team: [
       {
         id: "3",
         name: "Michael Brown",
         role: "Senior Developer",
-        email: "michael.b@example.com",
-        phone: "+44 20 7123 4569",
-        status: "Busy",
-        cscsCard: {
-          number: "CSCS123458",
-          expiryDate: "2025-12-31"
-        },
-        bankDetails: {
-          accountNumber: "11223344",
-          accountName: "Michael Brown",
-          sortCode: "11-22-33"
-        },
+        status: "Active",
         avatar: "/avatars/michael-brown.jpg",
-        joinDate: "2023-03-10"
+        finishedTime: "17:00"
       },
       {
         id: "4",
         name: "Emma Wilson",
         role: "Frontend Developer",
-        email: "emma.w@example.com",
-        phone: "+44 20 7123 4570",
-        status: "Available",
-        cscsCard: {
-          number: "CSCS123459",
-          expiryDate: "2025-12-31"
-        },
-        bankDetails: {
-          accountNumber: "44332211",
-          accountName: "Emma Wilson",
-          sortCode: "44-33-22"
-        },
+        status: "Active",
         avatar: "/avatars/emma-wilson.jpg",
-        joinDate: "2023-04-05"
+        finishedTime: "17:00"
       }
+    ],
+    startTime: "09:00",
+    address: {
+      street: "456 Mobile Street",
+      number: "200",
+      city: "Seattle",
+      postcode: "98101",
+      country: "USA"
+    },
+    contact: {
+      name: "Michael Brown",
+      phone: "+44 20 7123 4569",
+      email: "michael.b@example.com"
+    },
+    workforce: [
+      { type: "Fitter", quantity: 3 },
+      { type: "Driver", quantity: 2 },
+      { type: "Supervisor", quantity: 1 }
     ]
   },
   {
     id: "3",
     title: "Marketing Campaign",
+    description: "Campanha de marketing digital para lançamento do novo produto",
+    progress: 100,
+    dueDate: "2024-03-30",
+    status: "Completed",
     team: [
       {
         id: "5",
         name: "David Lee",
         role: "Marketing Manager",
-        email: "david.l@example.com",
-        phone: "+44 20 7123 4571",
-        status: "Working",
-        cscsCard: {
-          number: "CSCS123460",
-          expiryDate: "2025-12-31"
-        },
-        bankDetails: {
-          accountNumber: "55667788",
-          accountName: "David Lee",
-          sortCode: "55-66-77"
-        },
+        status: "Active",
         avatar: "/avatars/david-lee.jpg",
-        joinDate: "2023-05-15"
+        finishedTime: "17:00"
       }
+    ],
+    startTime: "09:00",
+    finishedTime: "17:00",
+    address: {
+      street: "789 Marketing Blvd",
+      number: "300",
+      city: "New York",
+      postcode: "10001",
+      country: "USA"
+    },
+    contact: {
+      name: "David Lee",
+      phone: "+44 20 7123 4571",
+      email: "david.l@example.com"
+    },
+    workforce: [
+      { type: "Porter", quantity: 2 },
+      { type: "Driver", quantity: 1 }
+    ]
+  },
+  {
+    id: "4",
+    title: "Database Migration",
+    description: "Migração do banco de dados para uma nova versão com melhor performance",
+    progress: 0,
+    dueDate: "2024-06-10",
+    status: "Pending",
+    team: [],
+    address: {
+      street: "101 Data Center",
+      number: "400",
+      city: "Austin",
+      postcode: "73301",
+      country: "USA"
+    },
+    contact: {
+      name: "Sarah Johnson",
+      phone: "+44 20 7123 4572",
+      email: "sarah.j@example.com"
+    },
+    workforce: [
+      { type: "Fitter", quantity: 1 },
+      { type: "Porter", quantity: 1 }
+    ]
+  },
+  {
+    id: "5",
+    title: "Security Audit",
+    description: "Auditoria completa de segurança do sistema",
+    progress: 45,
+    dueDate: "2024-04-30",
+    status: "In Progress",
+    team: [
+      {
+        id: "6",
+        name: "Alex Turner",
+        role: "Security Specialist",
+        status: "Active",
+        avatar: "/avatars/alex-turner.jpg",
+        finishedTime: "17:00"
+      }
+    ],
+    startTime: "09:00",
+    address: {
+      street: "202 Security Ave",
+      number: "500",
+      city: "Boston",
+      postcode: "02108",
+      country: "USA"
+    },
+    contact: {
+      name: "Alex Turner",
+      phone: "+44 20 7123 4573",
+      email: "alex.t@example.com"
+    },
+    workforce: [
+      { type: "Fitter", quantity: 2 },
+      { type: "Porter", quantity: 1 },
+      { type: "Driver", quantity: 1 },
+      { type: "Supervisor", quantity: 1 }
     ]
   }
 ];
 
 // Function to get a project by ID
-export function getProjectById(id: string): ProjectTeam | undefined {
+export function getProjectById(id: string): Project | undefined {
   return mockProjects.find(project => project.id === id);
 }
 

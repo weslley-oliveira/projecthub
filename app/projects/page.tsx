@@ -24,9 +24,10 @@ import { Label } from "@/components/ui/label";
 import { Search, Users, MapPin, Phone, Clock, FileText, Plus, Eye } from "lucide-react";
 import { TeamAssignment } from "@/components/dashboard/team-assignment";
 import { useToast } from "@/hooks/use-toast";
-import { Address } from "@/components/ui/address";
+import { Address as AddressComponent } from "@/components/ui/address";
+import { Address } from "@/app/types/common";
 import Link from "next/link";
-import { TeamMember, Contact, Project, AddressData } from "../types/project";
+import { TeamMember, Contact, Project } from "../types/project";
 import { calculateDuration, calculateFinishedTime } from "@/app/data/projects/mockProjects";
 
 export default function ProjectsPage() {
@@ -37,7 +38,7 @@ export default function ProjectsPage() {
   const [addressDialogOpen, setAddressDialogOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [projectAddress, setProjectAddress] = useState<AddressData | undefined>(undefined);
+  const [projectAddress, setProjectAddress] = useState<Address | undefined>(undefined);
   const [projectContact, setProjectContact] = useState<Contact | undefined>(undefined);
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const [projectToComplete, setProjectToComplete] = useState<Project | null>(null);
@@ -300,6 +301,51 @@ export default function ProjectsPage() {
     }
   };
 
+  // Função para duplicar projeto
+  const handleDuplicateProject = async (project: Project) => {
+    try {
+      // Calcula a data do dia seguinte
+      const nextDay = new Date(project.dueDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const formattedNextDay = nextDay.toISOString().split('T')[0];
+
+      // Cria uma cópia do projeto com a nova data
+      const duplicatedProject = {
+        ...project,
+        id: undefined, // Remove o ID para que o backend gere um novo
+        title: `${project.title} (Cópia)`,
+        dueDate: formattedNextDay,
+        status: "Pending",
+        progress: 0,
+        finishedTime: undefined,
+      };
+
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(duplicatedProject),
+      });
+
+      if (!response.ok) throw new Error('Failed to duplicate project');
+
+      const data = await response.json();
+      setProjects(prevProjects => [...prevProjects, data.project]);
+      
+      toast({
+        title: "Sucesso",
+        description: "Projeto duplicado com sucesso",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao duplicar o projeto",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -367,56 +413,13 @@ export default function ProjectsPage() {
         {/* Projects Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredProjects.map((project) => (
-            <div key={project.id} className="relative group">
-              <ProjectCard {...project} />
-              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  asChild
-                >
-                  <Link href={`/projects/${project.id}`}>
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Link>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => openAddressDialog(project)}
-                >
-                  <MapPin className="h-4 w-4 mr-1" />
-                  Address
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => openContactDialog(project)}
-                >
-                  <Phone className="h-4 w-4 mr-1" />
-                  Contact
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => openTeamAssignment(project)}
-                >
-                  <Users className="h-4 w-4 mr-1" />
-                  Team
-                </Button>
-              </div>
-              {project.status !== "Completed" && (
-                <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => openCompletionDialog(project)}
-                    className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-                  >
-                    Mark as Completed
-                  </Button>
-                </div>
-              )}
+            <div key={project.id} className="relative">
+              <ProjectCard 
+                {...project} 
+                onOpenTeam={() => openTeamAssignment(project)}
+                onComplete={() => openCompletionDialog(project)}
+                onDuplicate={() => handleDuplicateProject(project)}
+              />
             </div>
           ))}
         </div>
@@ -451,7 +454,7 @@ export default function ProjectsPage() {
               {selectedProject ? `Add or update the address for the project "${selectedProject.title}"` : 'Add an address for the project'}
             </DialogDescription>
           </DialogHeader>
-          <Address 
+          <AddressComponent 
             onAddressChange={setProjectAddress}
             defaultValues={projectAddress}
             className="py-4"
